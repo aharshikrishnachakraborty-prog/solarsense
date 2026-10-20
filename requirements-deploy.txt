@@ -1,0 +1,8 @@
+# Only what the WEBSITE needs (used by Render). The pipeline needs the full requirements.txt.
+# Same versions as requirements.txt, so the deployed site behaves exactly like your laptop.
+fastapi==0.151.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.1
+pandas==3.0.6
+numpy==2.5.4
+pyarrow==26.0.0          # reads the .parquet files in data/processed/

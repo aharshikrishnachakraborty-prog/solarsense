@@ -58,7 +58,7 @@ Explain the 4 files to me simply, and the 3 most important data-quality findings
 **You check:** read `reports/data_quality.md` · P1 can explain inverter, irradiation, DC vs AC, DAILY_YIELD.
 
 ---"""
-
+ma
 ## Phase 2 — Clean and merge (owner: P1)
 
 ```

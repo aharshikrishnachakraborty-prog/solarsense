@@ -1,0 +1,18 @@
+# Render.com "Blueprint": tells Render how to run the SolarSense website for free.
+# Render reads this file when you create the service from the GitHub repository.
+services:
+  - type: web
+    name: solarsense
+    runtime: python
+    plan: free
+    # Install only the website's libraries (fast build, low memory).
+    buildCommand: pip install -r requirements-deploy.txt
+    # Render tells the app which port to use in $PORT; 0.0.0.0 = accept visitors from the internet.
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    # Render checks this address to know the site is up.
+    healthCheckPath: /api/health
+    # Every `git push` to main re-deploys the site automatically.
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
