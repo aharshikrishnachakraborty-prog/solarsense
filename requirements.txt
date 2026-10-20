@@ -1,0 +1,27 @@
+# SolarSense — Python libraries (Python 3.10–3.12)
+# Install with:  pip install -r requirements.txt
+# Versions are pinned so every team member gets exactly the same setup.
+
+# Data handling ("Excel, but in Python")
+pandas==3.0.6
+numpy==2.5.4
+pyarrow==26.0.0          # lets pandas read/write fast .parquet files
+
+# Machine learning + saving models
+scikit-learn==1.9.1
+joblib==1.6.0
+
+# API (the engine's "waiter")
+fastapi==0.151.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.1
+
+# Internet requests (optional NASA POWER site estimator)
+requests==2.34.2
+
+# Testing
+pytest==9.1.1
+httpx==0.28.1            # needed by FastAPI's TestClient
+
+# Charts saved as PNG images (reports/figures/)
+matplotlib==3.11.2

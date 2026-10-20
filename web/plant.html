@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarSense — Plant</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2710%27 fill=%27%23f59e0b%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="topbar"></header>
+
+  <main class="page">
+    <h1>Plant: actual vs expected — whole period</h1>
+    <div id="takeaway" class="takeaway"><div class="skeleton" style="width: 55%"></div></div>
+
+    <section class="card">
+      <h2 id="daily-title">Daily actual vs expected energy</h2>
+      <p class="card-sub">Bars = energy per day. Line = actual vs expected (actual ÷ expected energy; 100% = as estimated)
+        <span class="info" tabindex="0" data-tip="Above 100% means the plant produced more than our model estimated." aria-label="Above 100% means the plant produced more than our model estimated.">i</span></p>
+      <div class="chart-box"><canvas id="daily-chart" aria-label="Daily actual vs expected energy"></canvas></div>
+    </section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2 id="heatmap-title">Inverter health map</h2>
+      <p class="card-sub">Each square = one inverter on one day, coloured by actual vs expected energy
+        <span class="info" tabindex="0" data-tip="Above 100% means the plant produced more than our model estimated." aria-label="Above 100% means the plant produced more than our model estimated.">i</span>.
+        Click a square to open that inverter and day.</p>
+      <div class="table-wrap"><div id="heatmap" class="heatmap"><div class="skeleton" style="height: 200px"></div></div></div>
+      <div class="legend">
+        <span class="l-ok">≥ 95% healthy</span><span class="l-warn">85–95% watch</span>
+        <span class="l-bad">&lt; 85% problem</span><span class="l-none">no data</span>
+        <span class="muted">Outlined column = replay date</span>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2>Top 5 inverters by energy lost (whole period)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Inverter</th><th class="num">Energy lost</th><th class="num">Money lost</th><th class="num">Alerts</th></tr></thead>
+          <tbody id="worst"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody>
+        </table>
+      </div>
+      <p id="tariff-note" class="footer-note"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/plant.js"></script>
+</body>
+</html>

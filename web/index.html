@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarSense — Overview</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2710%27 fill=%27%23f59e0b%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="topbar"></header>
+
+  <main class="page">
+    <h1>Plant overview</h1>
+    <div id="takeaway" class="takeaway"><div class="skeleton" style="width: 60%"></div></div>
+    <div id="notices" class="notice" role="note" hidden></div>
+
+    <!-- KPI tiles: big number + small comparison -->
+    <section id="kpis" class="grid kpis" aria-label="Key numbers">
+      <div class="card"><div class="skeleton"></div></div><div class="card"><div class="skeleton"></div></div>
+      <div class="card"><div class="skeleton"></div></div><div class="card"><div class="skeleton"></div></div>
+      <div class="card"><div class="skeleton"></div></div><div class="card"><div class="skeleton"></div></div>
+    </section>
+
+    <section class="grid grid-main">
+      <div class="card">
+        <div class="card-head">
+          <h2 id="day-chart-title">Actual vs expected output</h2>
+          <div class="replay-controls">
+            <button id="replay-start" class="btn-primary" title="Play the chosen day in 15-minute steps, like live monitoring">▶ Live replay</button>
+            <button id="replay-pause" hidden>Pause</button>
+            <select id="replay-speed" aria-label="Replay speed" hidden><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select>
+            <button id="replay-stop" hidden>Stop</button>
+          </div>
+        </div>
+        <p class="card-sub">Plant total every 15 minutes. Expected = what our AI model says the plant should make for this sunlight.</p>
+        <div class="chart-box"><canvas id="day-chart" aria-label="Actual vs expected power chart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Needs attention</h2>
+        <p class="card-sub">Open alerts on this day, most severe first.</p>
+        <ul id="attention" class="list"><li><div class="skeleton"></div></li></ul>
+        <p><a id="all-alerts-link" href="alerts.html">See all alerts →</a></p>
+      </div>
+    </section>
+
+    <section class="grid grid-main">
+      <div class="card">
+        <h2 id="loss-chart-title">Energy lost by fault type</h2>
+        <p class="card-sub">Whole period (all days) for this plant. Data gaps are shown separately as "at risk" — not confirmed loss.</p>
+        <div class="chart-box small"><canvas id="loss-chart" aria-label="Loss by fault type chart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>How to read this page</h2>
+        <ul class="list muted">
+          <li><strong>Actual vs expected</strong> = actual ÷ expected energy. 100% means the plant made exactly what our model estimated for the weather; above 100% means it produced more than estimated.</li>
+          <li><strong>Energy lost</strong> counts only detected faults (trips, underperformance…).</li>
+          <li><strong>At risk</strong> = energy we could not verify because readings were missing.</li>
+          <li>Use <strong>Replay date</strong> (top right) to step through the days. It opens on the day with the highest energy loss.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="footer-note">All numbers are computed by the SolarSense pipeline from the Kaggle "Solar Power Generation Data" (two plants in India, May–June 2020).</p>
+  </main>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/overview.js"></script>
+  <script src="js/replay.js"></script>
+</body>
+</html>

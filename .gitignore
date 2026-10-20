@@ -1,0 +1,16 @@
+# Virtual environment (each person creates their own)
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Raw Kaggle data (download it yourself — never commit it)
+data/raw/
+
+# Trained models are rebuilt by the pipeline (python run_all.py) — too big to commit
+models/*.joblib
+
+# Alert statuses changed while using the dashboard (local state, not code)
+data/processed/alert_status.json

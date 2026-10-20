@@ -1,0 +1,788 @@
+{
+  "data": {
+    "files": {
+      "plant_1_generation": {
+        "rows": 68778,
+        "columns": [
+          "DATE_TIME",
+          "PLANT_ID",
+          "SOURCE_KEY",
+          "DC_POWER",
+          "AC_POWER",
+          "DAILY_YIELD",
+          "TOTAL_YIELD"
+        ],
+        "date_start": "2020-05-15 00:00:00",
+        "date_end": "2020-06-17 23:45:00",
+        "days": 34,
+        "unique_source_keys": 22,
+        "missing_values": 0,
+        "duplicate_readings": 0
+      },
+      "plant_1_weather": {
+        "rows": 3182,
+        "columns": [
+          "DATE_TIME",
+          "PLANT_ID",
+          "SOURCE_KEY",
+          "AMBIENT_TEMPERATURE",
+          "MODULE_TEMPERATURE",
+          "IRRADIATION"
+        ],
+        "date_start": "2020-05-15 00:00:00",
+        "date_end": "2020-06-17 23:45:00",
+        "days": 34,
+        "unique_source_keys": 1,
+        "missing_values": 0,
+        "duplicate_readings": 0
+      },
+      "plant_2_generation": {
+        "rows": 67698,
+        "columns": [
+          "DATE_TIME",
+          "PLANT_ID",
+          "SOURCE_KEY",
+          "DC_POWER",
+          "AC_POWER",
+          "DAILY_YIELD",
+          "TOTAL_YIELD"
+        ],
+        "date_start": "2020-05-15 00:00:00",
+        "date_end": "2020-06-17 23:45:00",
+        "days": 34,
+        "unique_source_keys": 22,
+        "missing_values": 0,
+        "duplicate_readings": 0
+      },
+      "plant_2_weather": {
+        "rows": 3259,
+        "columns": [
+          "DATE_TIME",
+          "PLANT_ID",
+          "SOURCE_KEY",
+          "AMBIENT_TEMPERATURE",
+          "MODULE_TEMPERATURE",
+          "IRRADIATION"
+        ],
+        "date_start": "2020-05-15 00:00:00",
+        "date_end": "2020-06-17 23:45:00",
+        "days": 34,
+        "unique_source_keys": 1,
+        "missing_values": 0,
+        "duplicate_readings": 0
+      }
+    },
+    "plants": {
+      "plant_1": {
+        "inverters": 22,
+        "days": 34,
+        "expected_readings_per_inverter": 3264,
+        "actual_readings_per_inverter_min": 3104,
+        "actual_readings_per_inverter_median": 3124.5,
+        "actual_readings_per_inverter_max": 3155,
+        "total_missing_readings": 3030,
+        "missing_pct": 4.22,
+        "weather_missing_timestamps": 82,
+        "daylight_slots": 1613,
+        "inverters_with_missing_daylight": 22,
+        "worst_missing_daylight": [
+          {
+            "inverter": "1IF53ai7Xc0U56Y",
+            "missing_daylight_readings": 8,
+            "missing_daylight_pct": 0.5
+          },
+          {
+            "inverter": "3PZuoBAID5Wc2HD",
+            "missing_daylight_readings": 8,
+            "missing_daylight_pct": 0.5
+          },
+          {
+            "inverter": "WRmjgnKYAwPKWDb",
+            "missing_daylight_readings": 8,
+            "missing_daylight_pct": 0.5
+          },
+          {
+            "inverter": "adLQvlD726eNBSB",
+            "missing_daylight_readings": 8,
+            "missing_daylight_pct": 0.5
+          },
+          {
+            "inverter": "ZnxXDlPa8U1GXgE",
+            "missing_daylight_readings": 3,
+            "missing_daylight_pct": 0.2
+          }
+        ],
+        "dc_ac_daylight_rows": 35351,
+        "ac_dc_ratio_median": 0.0979,
+        "ac_dc_ratio_p5": 0.0968,
+        "ac_dc_ratio_p95": 0.0982,
+        "negative_dc_or_ac_rows": 0,
+        "negative_irradiation_rows": 0,
+        "ac_greater_than_dc_rows": 0,
+        "ac_greater_than_dc_max_excess_pct": 0.0,
+        "night_irradiation_rows": 0,
+        "night_irradiation_max": 0.0,
+        "daily_yield_not_zero_at_day_start": 205,
+        "daily_yield_not_zero_at_midnight": 161,
+        "inverter_days": 748,
+        "daily_yield_drops_total": 439,
+        "daily_yield_drops_in_daylight": 38,
+        "total_yield_zero_rows": 0,
+        "total_yield_drops": 0,
+        "total_yield_max_min_inverter": 6426129.0,
+        "total_yield_max_max_inverter": 7846821.0
+      },
+      "plant_2": {
+        "inverters": 22,
+        "days": 34,
+        "expected_readings_per_inverter": 3264,
+        "actual_readings_per_inverter_min": 2355,
+        "actual_readings_per_inverter_median": 3259.0,
+        "actual_readings_per_inverter_max": 3259,
+        "total_missing_readings": 4110,
+        "missing_pct": 5.72,
+        "weather_missing_timestamps": 5,
+        "daylight_slots": 1623,
+        "inverters_with_missing_daylight": 10,
+        "worst_missing_daylight": [
+          {
+            "inverter": "IQ2d7wF4YD8zU1Q",
+            "missing_daylight_readings": 459,
+            "missing_daylight_pct": 28.3
+          },
+          {
+            "inverter": "NgDl19wMapZy17u",
+            "missing_daylight_readings": 459,
+            "missing_daylight_pct": 28.3
+          },
+          {
+            "inverter": "mqwcsP2rE7J0TFp",
+            "missing_daylight_readings": 459,
+            "missing_daylight_pct": 28.3
+          },
+          {
+            "inverter": "xMbIugepa2P7lBB",
+            "missing_daylight_readings": 459,
+            "missing_daylight_pct": 28.3
+          },
+          {
+            "inverter": "4UPUqMRk7TRMgml",
+            "missing_daylight_readings": 32,
+            "missing_daylight_pct": 2.0
+          }
+        ],
+        "dc_ac_daylight_rows": 29880,
+        "ac_dc_ratio_median": 0.9787,
+        "ac_dc_ratio_p5": 0.9681,
+        "ac_dc_ratio_p95": 0.9824,
+        "negative_dc_or_ac_rows": 0,
+        "negative_irradiation_rows": 0,
+        "ac_greater_than_dc_rows": 18,
+        "ac_greater_than_dc_max_excess_pct": 0.83,
+        "night_irradiation_rows": 47,
+        "night_irradiation_max": 0.0029,
+        "daily_yield_not_zero_at_day_start": 530,
+        "daily_yield_not_zero_at_midnight": 516,
+        "inverter_days": 716,
+        "daily_yield_drops_total": 1888,
+        "daily_yield_drops_in_daylight": 951,
+        "total_yield_zero_rows": 563,
+        "total_yield_drops": 1161,
+        "total_yield_max_min_inverter": 520758.0,
+        "total_yield_max_max_inverter": 2247916295.0
+      }
+    },
+    "plant_1_dc_inflation_factor_vs_plant_2": 10.0,
+    "daylight_irradiation_threshold": 0.02
+  },
+  "cleaning": {
+    "plants": {
+      "plant_1": {
+        "negative_power_rows_blanked": 0,
+        "ac_above_dc_rows_flagged": 18,
+        "negative_irradiation_rows_set_to_zero": 0,
+        "rows": 71808,
+        "inverters": 22,
+        "raw_readings": 68778,
+        "missing_rows": 3030,
+        "missing_daylight_rows": 58,
+        "weather_missing_rows": 1804,
+        "daylight_rows": 35486,
+        "dc_scale_applied": 10.001,
+        "ac_dc_ratio_after_fix": 0.9787
+      },
+      "plant_2": {
+        "negative_power_rows_blanked": 0,
+        "ac_above_dc_rows_flagged": 18,
+        "negative_irradiation_rows_set_to_zero": 0,
+        "rows": 71808,
+        "inverters": 22,
+        "raw_readings": 67698,
+        "missing_rows": 4110,
+        "missing_daylight_rows": 2028,
+        "weather_missing_rows": 110,
+        "daylight_rows": 35706,
+        "dc_scale_applied": 1.0,
+        "ac_dc_ratio_after_fix": 0.9787
+      }
+    },
+    "dc_scale_factor": 10.001,
+    "total_rows": 143616
+  },
+  "assumptions": [
+    {
+      "key": "tariff_inr_per_kwh",
+      "title": "Electricity tariff used to convert lost kWh into \u20b9",
+      "value": 3.0,
+      "unit": "\u20b9/kWh",
+      "why": "Assumed value, configurable as TARIFF_INR_PER_KWH in engine/config.py (re-run the pipeline after changing it). Shown on the website as \"assumed tariff \u2014 see About\".",
+      "source": "TODO(team): cite our source for this tariff (e.g. a recent Indian solar tariff) here."
+    },
+    {
+      "key": "plant_1_dc_scale_factor",
+      "title": "Plant 1 DC_POWER divided by a scale factor",
+      "value": 10.001,
+      "unit": "\u00d7",
+      "why": "In daylight Plant 1 AC\u00f7DC was 0.0979 (physically impossible) vs 0.9787 for Plant 2. We assume the inverters are similar and the DC sensor/logging was ~10.001\u00d7 too large.",
+      "source": "Computed from the data (engine/clean_data.py)"
+    },
+    {
+      "key": "anomaly_contamination",
+      "title": "Share of inverter-days Isolation Forest treats as unusual",
+      "value": 5.0,
+      "unit": "%",
+      "why": "Isolation Forest needs an expected share of odd days; we have no labels to measure it. Used only for the optional 'unusual day' hint, never for alerts.",
+      "source": "Chosen by the team (engine/config.py)"
+    },
+    {
+      "key": "projected_annual_loss",
+      "title": "Projected annual loss if faults are not fixed",
+      "value": 365,
+      "unit": "days scaled from the observed period",
+      "why": "Estimate: 34-day loss scaled to 365 days, assuming the rest of the year behaves like May\u2013June and nothing is fixed. Real yearly sunlight and fault patterns will differ.",
+      "source": "Simple extrapolation (engine/losses.py)"
+    }
+  ],
+  "expected_model": {
+    "settings": {
+      "train_fraction": 0.7,
+      "outage_irradiation_min": 0.3,
+      "outage_ac_max_kw": 1.0,
+      "mape_min_actual_kw": 100.0
+    },
+    "plant_1": {
+      "train_dates": [
+        "2020-05-15",
+        "2020-06-07"
+      ],
+      "test_dates": [
+        "2020-06-08",
+        "2020-06-17"
+      ],
+      "train_days": 24,
+      "test_days": 10,
+      "train_rows": 24789,
+      "train_outage_rows_removed": 35,
+      "test_rows_obvious_outage": 27,
+      "physics_coefficients": {
+        "k_kw_per_irradiation": 1453.28,
+        "gamma_per_degC": 0.0041
+      },
+      "rf_feature_importance": {
+        "irradiation": 0.987,
+        "module_temp": 0.003,
+        "ambient_temp": 0.002,
+        "hour_decimal": 0.003,
+        "inverter_code": 0.005
+      },
+      "physics": {
+        "train": {
+          "mae_kw": 40.83,
+          "r2": 0.9671,
+          "mape_pct": 7.17,
+          "rows": 24789
+        },
+        "test_all": {
+          "mae_kw": 36.23,
+          "r2": 0.9594,
+          "mape_pct": 6.25,
+          "rows": 10604
+        },
+        "test_without_obvious_outages": {
+          "mae_kw": 34.17,
+          "r2": 0.9764,
+          "mape_pct": 6.25,
+          "rows": 10577
+        }
+      },
+      "random_forest": {
+        "train": {
+          "mae_kw": 24.0,
+          "r2": 0.9861,
+          "mape_pct": 3.89,
+          "rows": 24789
+        },
+        "test_all": {
+          "mae_kw": 34.49,
+          "r2": 0.9603,
+          "mape_pct": 5.67,
+          "rows": 10604
+        },
+        "test_without_obvious_outages": {
+          "mae_kw": 32.47,
+          "r2": 0.9758,
+          "mape_pct": 5.67,
+          "rows": 10577
+        }
+      },
+      "chosen_model": "random_forest"
+    },
+    "plant_2": {
+      "train_dates": [
+        "2020-05-15",
+        "2020-06-07"
+      ],
+      "test_dates": [
+        "2020-06-08",
+        "2020-06-17"
+      ],
+      "train_days": 24,
+      "test_days": 10,
+      "train_rows": 20305,
+      "train_outage_rows_removed": 2769,
+      "test_rows_obvious_outage": 954,
+      "physics_coefficients": {
+        "k_kw_per_irradiation": 1349.33,
+        "gamma_per_degC": 0.00248
+      },
+      "rf_feature_importance": {
+        "irradiation": 0.947,
+        "module_temp": 0.016,
+        "ambient_temp": 0.013,
+        "hour_decimal": 0.012,
+        "inverter_code": 0.012
+      },
+      "physics": {
+        "train": {
+          "mae_kw": 68.72,
+          "r2": 0.8716,
+          "mape_pct": 16.34,
+          "rows": 20305
+        },
+        "test_all": {
+          "mae_kw": 142.45,
+          "r2": 0.1062,
+          "mape_pct": 18.71,
+          "rows": 10604
+        },
+        "test_without_obvious_outages": {
+          "mae_kw": 67.59,
+          "r2": 0.8314,
+          "mape_pct": 18.71,
+          "rows": 9650
+        }
+      },
+      "random_forest": {
+        "train": {
+          "mae_kw": 37.16,
+          "r2": 0.9497,
+          "mape_pct": 7.98,
+          "rows": 20305
+        },
+        "test_all": {
+          "mae_kw": 133.18,
+          "r2": 0.1208,
+          "mape_pct": 15.46,
+          "rows": 10604
+        },
+        "test_without_obvious_outages": {
+          "mae_kw": 58.1,
+          "r2": 0.8387,
+          "mape_pct": 15.46,
+          "rows": 9650
+        }
+      },
+      "chosen_model": "random_forest"
+    }
+  },
+  "alerts": {
+    "total": 429,
+    "by_type": {
+      "INVERTER_TRIP": 358,
+      "DATA_GAP": 50,
+      "UNDERPERFORMANCE": 16,
+      "SENSOR_ISSUE": 5
+    },
+    "by_severity": {
+      "Critical": 203,
+      "High": 141,
+      "Medium": 79,
+      "Low": 6
+    },
+    "by_plant_and_type": {
+      "plant_1": {
+        "INVERTER_TRIP": 11,
+        "DATA_GAP": 4,
+        "SENSOR_ISSUE": 2
+      },
+      "plant_2": {
+        "INVERTER_TRIP": 347,
+        "DATA_GAP": 46,
+        "UNDERPERFORMANCE": 16,
+        "SENSOR_ISSUE": 3
+      }
+    },
+    "inverters_with_alerts": {
+      "plant_1": 11,
+      "plant_2": 22
+    }
+  },
+  "anomaly_score": {
+    "inverter_days": 1496,
+    "unusual_days": 76,
+    "unusual_with_rule_alert": 50,
+    "unusual_without_rule_alert": 26,
+    "rule_alert_days": 367,
+    "rule_alert_days_not_unusual": 317,
+    "contamination": 0.05,
+    "by_plant": {
+      "plant_1": {
+        "unusual_days": 38,
+        "unusual_without_rule_alert": 25
+      },
+      "plant_2": {
+        "unusual_days": 38,
+        "unusual_without_rule_alert": 1
+      }
+    },
+    "overlap_pct": 65.8,
+    "repeat_unusual_without_rule_alert": [
+      {
+        "plant": 1,
+        "inverter": "bvBOhCH3iADSZry",
+        "unusual_days": 9,
+        "median_peer_ratio_all_days": 0.945
+      },
+      {
+        "plant": 1,
+        "inverter": "adLQvlD726eNBSB",
+        "unusual_days": 3,
+        "median_peer_ratio_all_days": 1.032
+      },
+      {
+        "plant": 1,
+        "inverter": "ih0vzX44oOqAx2f",
+        "unusual_days": 2,
+        "median_peer_ratio_all_days": 0.992
+      }
+    ]
+  },
+  "losses": {
+    "tariff_inr_per_kwh": 3.0,
+    "tariff_note": "\u20b9 values use an assumed tariff (ASSUMPTION \u2014 see About), configurable in engine/config.py, until the team cites a source.",
+    "days": 34,
+    "total": {
+      "fault_loss_kwh": 927680.2,
+      "fault_loss_inr": 2783041.0,
+      "at_risk_kwh": 380157.3,
+      "at_risk_inr": 1140472.0,
+      "projected_annual_fault_loss_kwh": 9958920.0,
+      "projected_annual_fault_loss_inr": 29876759.0
+    },
+    "by_fault_type": {
+      "DATA_GAP": {
+        "alerts": 50.0,
+        "fault_loss_kwh": 0.0,
+        "fault_loss_inr": 0.0,
+        "at_risk_kwh": 380157.3,
+        "at_risk_inr": 1140474.0
+      },
+      "INVERTER_TRIP": {
+        "alerts": 358.0,
+        "fault_loss_kwh": 918989.0,
+        "fault_loss_inr": 2756955.0,
+        "at_risk_kwh": 0.0,
+        "at_risk_inr": 0.0
+      },
+      "SENSOR_ISSUE": {
+        "alerts": 5.0,
+        "fault_loss_kwh": 0.0,
+        "fault_loss_inr": 0.0,
+        "at_risk_kwh": 0.0,
+        "at_risk_inr": 0.0
+      },
+      "UNDERPERFORMANCE": {
+        "alerts": 16.0,
+        "fault_loss_kwh": 8691.2,
+        "fault_loss_inr": 26073.0,
+        "at_risk_kwh": 0.0,
+        "at_risk_inr": 0.0
+      }
+    },
+    "by_plant": {
+      "plant_1": {
+        "actual_kwh": 5287949.2,
+        "expected_kwh": 5287778.8,
+        "fault_loss_kwh": 14281.8,
+        "at_risk_kwh": 1413.7,
+        "net_shortfall_kwh": -170.5,
+        "performance_ratio": 1.0,
+        "fault_loss_inr": 42845.0,
+        "at_risk_inr": 4241.0,
+        "projected_annual_fault_loss_kwh": 153319.0,
+        "projected_annual_fault_loss_inr": 459958.0
+      },
+      "plant_2": {
+        "actual_kwh": 4076635.8,
+        "expected_kwh": 4998750.0,
+        "fault_loss_kwh": 913398.4,
+        "at_risk_kwh": 378743.6,
+        "net_shortfall_kwh": 922114.2,
+        "performance_ratio": 0.8155,
+        "fault_loss_inr": 2740195.0,
+        "at_risk_inr": 1136231.0,
+        "projected_annual_fault_loss_kwh": 9805600.0,
+        "projected_annual_fault_loss_inr": 29416801.0
+      }
+    },
+    "top_inverters": [
+      {
+        "plant": 2,
+        "inverter": "LYwnQax7tkwH5Cb",
+        "fault_loss_kwh": 80807.3,
+        "fault_loss_inr": 242422.0,
+        "alerts": 24,
+        "main_fault_type": "INVERTER_TRIP"
+      },
+      {
+        "plant": 2,
+        "inverter": "Et9kgGMDl729KT4",
+        "fault_loss_kwh": 73859.1,
+        "fault_loss_inr": 221577.0,
+        "alerts": 32,
+        "main_fault_type": "INVERTER_TRIP"
+      },
+      {
+        "plant": 2,
+        "inverter": "rrq4fwE8jgrTyWY",
+        "fault_loss_kwh": 66799.0,
+        "fault_loss_inr": 200397.0,
+        "alerts": 23,
+        "main_fault_type": "INVERTER_TRIP"
+      },
+      {
+        "plant": 2,
+        "inverter": "Quc1TzYxW2pYoWX",
+        "fault_loss_kwh": 65531.9,
+        "fault_loss_inr": 196596.0,
+        "alerts": 34,
+        "main_fault_type": "INVERTER_TRIP"
+      },
+      {
+        "plant": 2,
+        "inverter": "q49J1IKaHRwDQnt",
+        "fault_loss_kwh": 60963.3,
+        "fault_loss_inr": 182890.0,
+        "alerts": 23,
+        "main_fault_type": "INVERTER_TRIP"
+      }
+    ],
+    "projection_note": "Estimate: 34-day loss scaled to 365 days, assuming the rest of the year behaves like May\u2013June and nothing is fixed."
+  },
+  "validation": {
+    "method": "Faults injected into healthy test-day data (clean inverter-days), detected with the same detector and thresholds.",
+    "test_dates": [
+      "2020-06-08",
+      "2020-06-17"
+    ],
+    "clean_inverter_days": 356,
+    "caveat": "Healthy days were chosen as days where the default detector raised no alert, so false alarms at default thresholds are optimistic (near 0 by construction). The real false-alarm rate cannot be measured without labelled faults.",
+    "soiling_note": "Soiling is tested on Plant 1 only (the only plant with inverters healthy on every test day) and on a 10-day window. Its false alarms are Plant 2 inverters whose output trends down within those 10 days; on the full 34 days the same rule raised no degradation alert.",
+    "by_fault": {
+      "data_gap": {
+        "detected_as": "DATA_GAP",
+        "injections": 95,
+        "caught": 95,
+        "caught_as_other_type": 0,
+        "missed": 0,
+        "recall_pct": 100.0,
+        "false_alarms": 0,
+        "precision_pct": 100.0,
+        "false_alarms_per_100_clean_days": 0.0,
+        "avg_delay_minutes": 30.0,
+        "loss_error_median_abs_pct": 4.3,
+        "loss_error_mean_pct": -0.9,
+        "recall_by_plant_pct": {
+          "plant_1": 100.0,
+          "plant_2": 100.0
+        },
+        "size_unit": "hours",
+        "recall_by_size_pct": {
+          "[1.0, 1.75)": {
+            "injections": 41,
+            "recall_pct": 100.0
+          },
+          "[1.75, 2.5)": {
+            "injections": 24,
+            "recall_pct": 100.0
+          },
+          "[2.5, 3.01)": {
+            "injections": 30,
+            "recall_pct": 100.0
+          }
+        }
+      },
+      "soiling": {
+        "detected_as": "DEGRADATION",
+        "injections": 20,
+        "caught": 16,
+        "caught_as_other_type": 0,
+        "missed": 4,
+        "recall_pct": 80.0,
+        "false_alarms": 20,
+        "precision_pct": 44.4,
+        "false_alarms_per_100_clean_days": 5.62,
+        "avg_delay_minutes": null,
+        "loss_error_median_abs_pct": 9.2,
+        "loss_error_mean_pct": -2.9,
+        "recall_by_plant_pct": {
+          "plant_1": 80.0
+        },
+        "size_unit": "% per day",
+        "recall_by_size_pct": {
+          "[0.3, 0.5)": {
+            "injections": 2,
+            "recall_pct": 0.0
+          },
+          "[0.5, 0.75)": {
+            "injections": 7,
+            "recall_pct": 71.4
+          },
+          "[0.75, 1.01)": {
+            "injections": 11,
+            "recall_pct": 100.0
+          }
+        }
+      },
+      "trip": {
+        "detected_as": "INVERTER_TRIP",
+        "injections": 95,
+        "caught": 95,
+        "caught_as_other_type": 0,
+        "missed": 0,
+        "recall_pct": 100.0,
+        "false_alarms": 0,
+        "precision_pct": 100.0,
+        "false_alarms_per_100_clean_days": 0.0,
+        "avg_delay_minutes": 32.4,
+        "loss_error_median_abs_pct": 4.9,
+        "loss_error_mean_pct": -1.5,
+        "recall_by_plant_pct": {
+          "plant_1": 100.0,
+          "plant_2": 100.0
+        },
+        "size_unit": "hours",
+        "recall_by_size_pct": {
+          "[1.0, 2.0)": {
+            "injections": 27,
+            "recall_pct": 100.0
+          },
+          "[2.0, 3.0)": {
+            "injections": 32,
+            "recall_pct": 100.0
+          },
+          "[3.0, 4.01)": {
+            "injections": 36,
+            "recall_pct": 100.0
+          }
+        }
+      },
+      "underperformance": {
+        "detected_as": "UNDERPERFORMANCE",
+        "injections": 95,
+        "caught": 68,
+        "caught_as_other_type": 3,
+        "missed": 24,
+        "recall_pct": 71.6,
+        "false_alarms": 0,
+        "precision_pct": 100.0,
+        "false_alarms_per_100_clean_days": 0.0,
+        "avg_delay_minutes": 71.2,
+        "loss_error_median_abs_pct": 13.0,
+        "loss_error_mean_pct": -17.2,
+        "recall_by_plant_pct": {
+          "plant_1": 86.0,
+          "plant_2": 55.6
+        },
+        "size_unit": "output kept",
+        "recall_by_size_pct": {
+          "[0.6, 0.7)": {
+            "injections": 41,
+            "recall_pct": 97.6
+          },
+          "[0.7, 0.8)": {
+            "injections": 36,
+            "recall_pct": 75.0
+          },
+          "[0.8, 0.851)": {
+            "injections": 18,
+            "recall_pct": 5.6
+          }
+        }
+      }
+    },
+    "threshold_tradeoff": [
+      {
+        "setting": "sensitive",
+        "fault": "trip",
+        "recall_pct": 100.0,
+        "false_alarms_on_clean_days": 54,
+        "false_alarms_per_100_clean_days": 15.17
+      },
+      {
+        "setting": "sensitive",
+        "fault": "underperformance",
+        "recall_pct": 98.9,
+        "false_alarms_on_clean_days": 59,
+        "false_alarms_per_100_clean_days": 16.57
+      },
+      {
+        "setting": "default",
+        "fault": "trip",
+        "recall_pct": 100.0,
+        "false_alarms_on_clean_days": 0,
+        "false_alarms_per_100_clean_days": 0.0
+      },
+      {
+        "setting": "default",
+        "fault": "underperformance",
+        "recall_pct": 71.6,
+        "false_alarms_on_clean_days": 0,
+        "false_alarms_per_100_clean_days": 0.0
+      },
+      {
+        "setting": "strict",
+        "fault": "trip",
+        "recall_pct": 98.9,
+        "false_alarms_on_clean_days": 0,
+        "false_alarms_per_100_clean_days": 0.0
+      },
+      {
+        "setting": "strict",
+        "fault": "underperformance",
+        "recall_pct": 24.2,
+        "false_alarms_on_clean_days": 0,
+        "false_alarms_per_100_clean_days": 0.0
+      }
+    ],
+    "example_chart": {
+      "file": "reports/figures/validation_injected_fault_caught.png",
+      "plant": 1,
+      "inverter": "ih0vzX44oOqAx2f",
+      "date": "2020-06-16",
+      "output_kept_pct": 70,
+      "true_kwh": 722.6,
+      "estimated_kwh": 747.4
+    }
+  }
+}

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarSense — About</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2710%27 fill=%27%23f59e0b%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .flow { width: 100%; height: auto; }
+    .flow .box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+    .flow .box.ai { stroke: var(--accent); stroke-width: 2.5; }
+    .flow text { fill: var(--text); font-size: 13px; font-weight: 600; text-anchor: middle; }
+    .flow text.sub { fill: var(--muted); font-size: 11px; font-weight: 400; }
+    .flow .arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    .flow #arrowhead path { fill: var(--muted); }
+    .about-text p { margin: 0 0 10px; max-width: 75ch; }
+  </style>
+</head>
+<body>
+  <header id="topbar"></header>
+
+  <main class="page about-text">
+    <h1>About SolarSense</h1>
+    <p class="muted">AI solar plant health monitor — hackathon project for Meridian problem DEV-P01 (Application Development track).</p>
+
+    <section class="card">
+      <h2>The problem</h2>
+      <p>Solar plant operators usually find out that a panel string or an inverter is underperforming <strong>only after the losses have piled up</strong> — often at the end of the month, when the energy bill looks low.</p>
+      <p>SolarSense compares what every inverter <strong>actually</strong> produced with what it <strong>should</strong> have produced for the weather at that moment, flags likely faults with a plain-English reason, and estimates the energy and money lost — so the maintenance team knows what to fix first.</p>
+    </section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2>How it works</h2>
+      <svg class="flow" viewBox="0 0 1040 250" role="img" aria-label="Data flows from sensors through cleaning, the expected-output AI model, fault rules and peer comparison, and the loss estimator, to the alerts API and the dashboard.">
+        <defs><marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z"/></marker></defs>
+        <rect class="box" x="10" y="30" width="150" height="70" rx="10"/>
+        <text x="85" y="62">Sensors / data</text><text class="sub" x="85" y="82">power + weather, 15 min</text>
+        <rect class="box" x="220" y="30" width="150" height="70" rx="10"/>
+        <text x="295" y="62">Cleaning</text><text class="sub" x="295" y="82">gaps kept, DC fixed</text>
+        <rect class="box ai" x="430" y="30" width="180" height="70" rx="10"/>
+        <text x="520" y="62">Expected-output AI</text><text class="sub" x="520" y="82">Random Forest vs physics</text>
+        <rect class="box" x="670" y="30" width="180" height="70" rx="10"/>
+        <text x="760" y="62">Fault rules + peers</text><text class="sub" x="760" y="82">trip, underperf., gap…</text>
+        <rect class="box" x="670" y="160" width="180" height="70" rx="10"/>
+        <text x="760" y="192">Loss estimator</text><text class="sub" x="760" y="212">kWh and ₹</text>
+        <rect class="box" x="430" y="160" width="180" height="70" rx="10"/>
+        <text x="520" y="192">Alerts API</text><text class="sub" x="520" y="212">FastAPI, precomputed</text>
+        <rect class="box" x="220" y="160" width="150" height="70" rx="10"/>
+        <text x="295" y="192">Dashboard</text><text class="sub" x="295" y="212">this website</text>
+        <rect class="box" x="10" y="160" width="150" height="70" rx="10"/>
+        <text x="85" y="192">Operator</text><text class="sub" x="85" y="212">acknowledge → fix</text>
+        <path class="arrow" d="M160 65 H215"/><path class="arrow" d="M370 65 H425"/><path class="arrow" d="M610 65 H665"/>
+        <path class="arrow" d="M760 100 V155"/><path class="arrow" d="M670 195 H615"/><path class="arrow" d="M430 195 H375"/>
+        <path class="arrow" d="M220 195 H165"/>
+        <text class="sub" x="900" y="140" style="text-anchor: start">validated with</text>
+        <text class="sub" x="900" y="156" style="text-anchor: start">planted faults</text>
+        <path class="arrow" d="M895 135 C 870 110, 860 95, 852 85"/>
+      </svg>
+      <p class="muted">The pipeline computes everything in advance; the website only displays results. The AI never decides alone — clear rules raise every alert and explain why.</p>
+    </section>
+
+    <section class="grid grid-main">
+      <div class="card">
+        <h2>Data sources and licences</h2>
+        <ul class="list">
+          <li><strong>Kaggle — "Solar Power Generation Data"</strong> by anikannal: two solar plants in India, 15-minute readings, May–June 2020.
+            <div class="list-meta">Licence: see the dataset page on Kaggle. <em>TODO(team): confirm and write the exact licence here.</em> Plant locations (GPS) are not in the dataset.</div></li>
+          <li><strong>NASA POWER</strong> (optional New Site Estimator, Phase 12 — not built yet): satellite sunlight and temperature data, CC BY 4.0, no key required.</li>
+          <li><strong>Chart.js</strong> — charts on this website (MIT licence).</li>
+          <li><strong>Python libraries</strong>: pandas, NumPy, scikit-learn, FastAPI and others (open-source).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Limitations (honest)</h2>
+        <ul id="limitations" class="list muted">
+          <li id="lim-days">Only a few weeks of data from one season (May–June); accuracy in winter or monsoon is unknown.</li>
+          <li>One weather sensor per plant: a cloud over one corner of a plant can look like a fault there. Comparing each inverter with its neighbours reduces this.</li>
+          <li>No official fault labels exist, so we validated with faults we planted ourselves — see the Validation page.</li>
+          <li>Plant 1's DC power was rescaled because the raw values were physically impossible (see assumptions below).</li>
+          <li>The ₹ figures use an assumed tariff (configurable) until the team cites a sourced one — see Assumptions below.</li>
+          <li>Small underperformance (output dropping by less than 20%) is usually not caught, by design, to avoid false alarms.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2>Assumptions</h2>
+      <p class="card-sub">Everything we could not measure directly. In the rest of the dashboard these are marked with ⓘ.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Assumption</th><th>Value</th><th>Why / how it was chosen</th><th>Source</th></tr></thead>
+          <tbody id="assumptions"><tr><td colspan="4"><div class="skeleton"></div></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2>Team</h2>
+      <table>
+        <tbody>
+          <tr><td>[Name — TODO]</td><td>P1 · Data &amp; problem</td></tr>
+          <tr><td>[Name — TODO]</td><td>P2 · AI model &amp; fault detection</td></tr>
+          <tr><td>[Name — TODO]</td><td>P3 · Losses, validation &amp; API</td></tr>
+          <tr><td>[Name — TODO]</td><td>P4 · Web dashboard &amp; pitch</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/about.js"></script>
+</body>
+</html>

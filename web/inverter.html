@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarSense — Inverters</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2710%27 fill=%27%23f59e0b%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="topbar"></header>
+
+  <main class="page">
+    <div class="toolbar">
+      <h1 style="margin-right: auto">Inverter detail</h1>
+      <label for="inverter-select" class="muted">Inverter</label>
+      <select id="inverter-select" aria-label="Inverter"></select>
+    </div>
+    <div id="takeaway" class="takeaway"><div class="skeleton" style="width: 55%"></div></div>
+
+    <section id="kpis" class="grid kpis" aria-label="This inverter on the chosen day"></section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2 id="day-title">Actual vs expected vs neighbours</h2>
+      <p class="card-sub">Every 15 minutes on the replay date. Peer median = what a typical neighbouring inverter made under the same sun. Red shading = alert periods.</p>
+      <div class="chart-box"><canvas id="day-chart" aria-label="Inverter power chart"></canvas></div>
+    </section>
+
+    <section class="grid grid-main">
+      <div class="card">
+        <h2 id="pr-title">Daily actual vs expected</h2>
+        <p class="card-sub">Actual ÷ expected energy per day <span class="info" tabindex="0" data-tip="Above 100% means the plant produced more than our model estimated." aria-label="Above 100% means the plant produced more than our model estimated.">i</span>, with a straight trend line. Purple dots = "unusual day" hint from the optional Isolation Forest check (not an alert).</p>
+        <div class="chart-box small"><canvas id="pr-chart" aria-label="Daily actual vs expected chart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2 id="alerts-title">Alerts for this inverter</h2>
+        <ul id="alert-list" class="list scroll"><li><div class="skeleton"></div></li></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/inverter.js"></script>
+</body>
+</html>
