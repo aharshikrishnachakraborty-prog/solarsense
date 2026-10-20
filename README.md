@@ -1,21 +1,80 @@
 # SolarSense — AI Solar Plant Health Monitor
 
-Meridian hackathon, problem DEV-P01. SolarSense compares what each solar inverter **actually** produced
-with what it **should** have produced given the weather, flags likely faults with a plain-English reason,
-and estimates the energy (kWh) and money (₹) lost.
+Meridian hackathon, problem **DEV-P01** (Application Development track).
 
-> Work in progress — see `PROGRESS.md` for the current status.
+Solar operators often find out about broken or weak inverters only after the losses pile up.
+SolarSense compares what every inverter **actually** produced with what it **should** have produced
+for the weather, flags likely faults with a plain-English reason, and estimates the energy (kWh) and
+money (₹) lost — shown on a web dashboard that operators can act on.
 
-## Setup (Windows, PowerShell)
+## Setup in 10 steps (Windows, PowerShell)
 
-1. Install **Python 3.12** (3.10–3.12 work; 3.13+ is not supported).
-2. Open a terminal in the `solarsense/` folder.
-3. Create a virtual environment: `py -3.12 -m venv .venv`
-4. Activate it: `.venv\Scripts\Activate.ps1` (you should see `(.venv)` at the start of the line)
-5. Install the libraries: `pip install -r requirements.txt`
-6. Download the 4 CSVs of the Kaggle dataset **"Solar Power Generation Data"** (by anikannal) into `data/raw/`.
+1. **Install Python 3.12** from python.org (3.10–3.12 work; 3.13+ is too new for some libraries).
+2. **Get the project:** `git clone https://github.com/ojasguptaa/solarsense.git` and `cd solarsense`.
+3. **Create a virtual environment:** `py -3.12 -m venv .venv`
+4. **Activate it:** `.venv\Scripts\Activate.ps1` — you should see `(.venv)` at the start of the line.
+   If PowerShell says "running scripts is disabled", run once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+5. **Install the libraries:** `pip install -r requirements.txt`
+6. **Download the data:** on Kaggle (free account) open **"Solar Power Generation Data" by anikannal**,
+   click *Download*, unzip, and put the **4 CSV files** in `data/raw/`
+   (`Plant_1_Generation_Data.csv`, `Plant_1_Weather_Sensor_Data.csv`, `Plant_2_Generation_Data.csv`, `Plant_2_Weather_Sensor_Data.csv`).
+7. **Build everything:** `python run_all.py` (about 2 minutes; add `--skip-validation` for a quick ~20 s rebuild).
+8. **Check it works:** `pytest` — every test should pass.
+9. **Start the website:** `uvicorn api.main:app --reload`
+10. **Open** http://localhost:8000 in your browser (needs internet the first time, for the chart library).
+    Press **Ctrl+C** in the terminal to stop the server.
 
-More steps (running the pipeline and the dashboard) will be added as we build them.
+> macOS / Linux: use `python3.12 -m venv .venv` and `source .venv/bin/activate` in steps 3–4.
+> The processed data is already in the repository, so steps 9–10 work even before step 7 — but
+> step 7 is needed after changing any code or setting (and to rebuild the trained models).
 
-## Data sources
-- Kaggle — "Solar Power Generation Data" by anikannal (two plants in India, May–June 2020).
+## What you will see
+
+| Page | What it shows |
+|---|---|
+| **Overview** | Day summary, KPI tiles, actual vs expected chart, alerts needing attention, **▶ Live replay** of the day |
+| **Plant** | All days: daily actual vs expected, inverter × day health map, worst inverters |
+| **Inverters** | One inverter: actual vs expected vs neighbours, alert periods shaded, daily trend, its alerts |
+| **Alerts** | Filter/search/sort all alerts, "Why?" panel with evidence chart, Acknowledge / Resolve, CSV export |
+| **Validation** | Proof the detector works: faults we planted on purpose, what it catches and misses |
+| **About** | How it works, data sources, assumptions, limitations, team |
+
+Also try **http://localhost:8000/docs** to call the API directly.
+
+## How it works (one minute)
+
+1. **Clean** the raw data (fix Plant 1's impossible DC values, keep missing readings visible).
+2. **Expected output:** a Random Forest learns how much power each inverter should make for the sunlight and
+   temperature (compared against a simple physics formula). Trained on earlier days, tested on later days.
+3. **Fault rules** compare actual vs expected and vs neighbouring inverters: inverter trip, underperformance,
+   data gap, slow degradation, overheating, sensor/data issues — each with a reason and recommended action.
+4. **Losses:** energy lost × an assumed tariff = ₹ lost.
+5. **Validation:** we plant faults in healthy data and check the detector finds them (no official labels exist).
+6. The **API** serves the precomputed results; the **website** only displays them.
+
+## Project layout
+
+```
+engine/   the AI pipeline (load, clean, model, detect, losses, validate) — settings in engine/config.py
+api/      FastAPI app: JSON endpoints + serves the website
+web/      the dashboard (HTML, CSS, JavaScript, Chart.js)
+reports/  metrics.json (every number shown), data_quality.md, model_card.md, assumptions.md, figures/
+tests/    pytest checks
+data/     raw/ (Kaggle CSVs, not in git) and processed/ (pipeline outputs)
+```
+
+## Troubleshooting
+
+- **"Raw data not found"** → the 4 CSVs are not in `data/raw/` (step 6).
+- **"Engine offline" on the website** → the server is not running (step 9).
+- **Charts are empty** → no internet; Chart.js loads from a CDN.
+- **Port 8000 already in use** → `uvicorn api.main:app --reload --port 8001` and open http://localhost:8001.
+
+## Data, assumptions and honesty
+
+- Data: Kaggle "Solar Power Generation Data" by anikannal (two plants in India, 34 days in May–June 2020).
+  The raw files are not stored in this repository. Plant locations (GPS) are not in the dataset.
+- Every assumption (e.g. the ₹/kWh tariff — **still to be sourced by the team**) is listed in
+  `reports/assumptions.md` and on the About page.
+- Results are reproducible: everything uses a fixed random seed (42).
+- Progress and decisions are logged in `PROGRESS.md`; project rules are in `CLAUDE.md`.

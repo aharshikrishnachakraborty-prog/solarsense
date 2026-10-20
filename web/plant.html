@@ -28,14 +28,14 @@
         Click a square to open that inverter and day.</p>
       <div class="table-wrap"><div id="heatmap" class="heatmap"><div class="skeleton" style="height: 200px"></div></div></div>
       <div class="legend">
-        <span class="l-ok">≥ 95% healthy</span><span class="l-warn">85–95% watch</span>
-        <span class="l-bad">&lt; 85% problem</span><span class="l-none">no data</span>
+        <span class="l-ok" id="hm-legend-ok">healthy</span><span class="l-warn" id="hm-legend-warn">watch</span>
+        <span class="l-bad" id="hm-legend-bad">problem</span><span class="l-none">no data</span>
         <span class="muted">Outlined column = replay date</span>
       </div>
     </section>
 
     <section class="card" style="margin-top: var(--gap)">
-      <h2>Top 5 inverters by energy lost (whole period)</h2>
+      <h2 id="worst-title">Worst inverters by energy lost (whole period)</h2>
       <div class="table-wrap">
         <table>
           <thead><tr><th>#</th><th>Inverter</th><th class="num">Energy lost</th><th class="num">Money lost</th><th class="num">Alerts</th></tr></thead>

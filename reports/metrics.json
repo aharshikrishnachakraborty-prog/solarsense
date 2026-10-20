@@ -598,6 +598,33 @@
     "clean_inverter_days": 356,
     "caveat": "Healthy days were chosen as days where the default detector raised no alert, so false alarms at default thresholds are optimistic (near 0 by construction). The real false-alarm rate cannot be measured without labelled faults.",
     "soiling_note": "Soiling is tested on Plant 1 only (the only plant with inverters healthy on every test day) and on a 10-day window. Its false alarms are Plant 2 inverters whose output trends down within those 10 days; on the full 34 days the same rule raised no degradation alert.",
+    "fault_sizes": {
+      "trip_hours": [
+        1.0,
+        4.0
+      ],
+      "trip_centre_hour": 12,
+      "underperformance_hours": [
+        2.0,
+        6.0
+      ],
+      "underperformance_output_kept": [
+        0.6,
+        0.85
+      ],
+      "data_gap_hours": [
+        1.0,
+        3.0
+      ],
+      "soiling_pct_per_day": [
+        0.3,
+        1.0
+      ],
+      "window_hours": [
+        7,
+        17
+      ]
+    },
     "by_fault": {
       "data_gap": {
         "detected_as": "DATA_GAP",

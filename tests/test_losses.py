@@ -59,3 +59,11 @@ def test_projection_is_simple_scaling(outputs):
     losses = outputs["losses"]
     expected = losses["total"]["fault_loss_kwh"] / losses["days"] * config.DAYS_PER_YEAR
     assert losses["total"]["projected_annual_fault_loss_kwh"] == pytest.approx(expected, abs=1.0)
+
+
+def test_every_alert_has_a_reason_and_a_loss(outputs):
+    """Every alert explains itself and carries an energy and ₹ figure (0 is allowed, blank is not)."""
+    alerts = outputs["alerts"]
+    assert alerts["reason"].str.len().gt(20).all()
+    for column in ["energy_loss_kwh", "energy_at_risk_kwh", "money_loss_inr", "money_at_risk_inr"]:
+        assert alerts[column].notna().all() and (alerts[column] >= 0).all()

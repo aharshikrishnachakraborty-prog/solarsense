@@ -54,3 +54,17 @@ def validation():
 def assumptions():
     """Every assumption we made, with its value, reason and source."""
     return get_store().metrics.get("assumptions", [])
+
+
+@router.get("/settings")
+def settings():
+    """Key detector thresholds from engine/config.py, so the website never repeats them as typed text."""
+    return {
+        "underperformance_drop_pct": -config.UNDER_RESIDUAL_PCT_MAX,
+        "underperformance_min_hours": config.UNDER_MIN_INTERVALS * config.INTERVAL_HOURS,
+        "trip_min_hours": config.TRIP_MIN_INTERVALS * config.INTERVAL_HOURS,
+        "data_gap_min_hours": config.GAP_MIN_INTERVALS * config.INTERVAL_HOURS,
+        "degradation_slope_pct_per_day": -config.DEGRADATION_SLOPE_MAX_PCT,
+        "tariff_inr_per_kwh": config.TARIFF_INR_PER_KWH,
+        "interval_minutes": int(config.INTERVAL_HOURS * 60),
+    }

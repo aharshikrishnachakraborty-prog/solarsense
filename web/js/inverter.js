@@ -88,7 +88,7 @@ function renderPrChart(detail) {
   const trend = detail.pr_trend ? Object.fromEntries(detail.pr_trend.points.map((p) => [p.date, p.performance_ratio])) : {};
   const selected = days.map((d) => d.date === detail.date);
   const lowDays = days.filter((d) => prStatus(d.performance_ratio) === "bad").length;
-  document.getElementById("pr-title").textContent = `${lowDays} of ${days.length} days below 85% of expected`;
+  document.getElementById("pr-title").textContent = `${lowDays} of ${days.length} days below ${fmt.pct(PR_WARN)} of expected`;
   Charts.draw("pr-chart", {
     type: "line",
     data: {

@@ -19,6 +19,7 @@ def make_example_chart(example, original_test):
     date = str(record["start"].date())
 
     def one_day(table):
+        """This inverter's rows on the example day, in time order."""
         rows = table[(table["plant"] == record["plant"]) & (table["inverter"] == record["inverter"])
                      & (table["date"] == date)]
         return rows.sort_values("timestamp")

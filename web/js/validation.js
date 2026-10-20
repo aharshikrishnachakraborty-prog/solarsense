@@ -4,12 +4,14 @@ const FAULT_LABELS = { trip: "Inverter trip", underperformance: "Underperformanc
 const FAULT_ORDER = ["trip", "data_gap", "underperformance", "soiling"];
 let validationData = null;
 
-/** "[0.6, 0.7)" → "keeps 60–70%" (underperformance) or "1–2 h" (hours) — display text only. */
-function bucketLabel(bucket, unit) {
-  const [low, high] = bucket.replace(/[\[\]()]/g, "").split(",").map(Number);
-  if (unit === "output kept") return `keeps ${Math.round(low * 100)}–${Math.round(Math.min(high, 0.85) * 100)}%`;
-  if (unit === "hours") return `${fmt.number(low, 2).replace(/\.?0+$/, "")}–${fmt.number(Math.min(high, 4), 2).replace(/\.?0+$/, "")} h`;
-  return `${low}–${Math.min(high, 1)} ${unit}`;
+/** "[0.6, 0.7)" → "keeps 60–70%" or "1–2 h" — display text only. `largest` = biggest planted size (from the API). */
+function bucketLabel(bucket, unit, largest) {
+  const [low, rawHigh] = bucket.replace(/[\[\]()]/g, "").split(",").map(Number);
+  const high = Math.min(rawHigh, largest);   // the last group's edge is padded a little; show the real largest size
+  const trim = (n) => fmt.number(n, 2).replace(/\.?0+$/, "");
+  if (unit === "output kept") return `keeps ${Math.round(low * 100)}–${Math.round(high * 100)}%`;
+  if (unit === "hours") return `${trim(low)}–${trim(high)} h`;
+  return `${trim(low)}–${trim(high)} ${unit}`;
 }
 
 function renderValidation(v) {
@@ -43,12 +45,13 @@ function renderValidation(v) {
 
   const under = v.by_fault.underperformance;
   const buckets = Object.entries(under.recall_by_size_pct);
+  const largestKept = v.fault_sizes.underperformance_output_kept[1];
   const smallest = buckets[buckets.length - 1];
   document.getElementById("size-title").textContent =
-    `When output only drops a little (${bucketLabel(smallest[0], under.size_unit)}), we catch ${smallest[1].recall_pct}%`;
+    `When output only drops a little (${bucketLabel(smallest[0], under.size_unit, largestKept)}), we catch ${smallest[1].recall_pct}%`;
   Charts.draw("size-chart", {
     type: "bar",
-    data: { labels: buckets.map(([b]) => bucketLabel(b, under.size_unit)),
+    data: { labels: buckets.map(([b]) => bucketLabel(b, under.size_unit, largestKept)),
             datasets: [{ label: "Caught (%)", data: buckets.map(([, s]) => s.recall_pct), backgroundColor: buckets.map(([, s]) =>
               Charts.color(s.recall_pct >= 90 ? "--ok" : s.recall_pct >= 50 ? "--warn" : "--bad")) }] },
     options: {

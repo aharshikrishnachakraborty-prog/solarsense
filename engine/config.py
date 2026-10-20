@@ -187,3 +187,23 @@ VALIDATION_THRESHOLD_SETTINGS = {
     "strict": {"UNDER_RESIDUAL_PCT_MAX": -30.0, "UNDER_PEER_RATIO_MAX": 0.7,
                "UNDER_MIN_INTERVALS": 8, "TRIP_MIN_INTERVALS": 4},
 }
+# Size of each planted fault: (smallest, largest). Durations are picked in 15-minute steps.
+VALIDATION_FAULT_SIZES = {
+    "trip_hours": (1.0, 4.0),                    # output set to 0 around midday
+    "trip_centre_hour": 12,                      # trips are centred on noon (± 1 hour)
+    "underperformance_hours": (2.0, 6.0),
+    "underperformance_output_kept": (0.6, 0.85), # output multiplied by this
+    "data_gap_hours": (1.0, 3.0),                # readings removed
+    "soiling_pct_per_day": (0.3, 1.0),           # gradual decline over the test days
+    "window_hours": (7, 17),                     # underperformance / gaps happen between 07:00 and 17:00
+}
+# Groups used to show "what is easy vs hard to catch" (edges of each size group).
+VALIDATION_SIZE_BUCKETS = {
+    "trip": ("hours", [1, 2, 3, 4.01]),
+    "underperformance": ("output kept", [0.6, 0.7, 0.8, 0.851]),
+    "data_gap": ("hours", [1, 1.75, 2.5, 3.01]),
+    "soiling": ("% per day", [0.3, 0.5, 0.75, 1.01]),
+}
+
+# Charts: how many test points to draw in the predicted-vs-actual scatter (keeps the PNG readable).
+SCATTER_SAMPLE_POINTS = 5000

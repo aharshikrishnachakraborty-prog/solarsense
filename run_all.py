@@ -1,0 +1,100 @@
+"""Rebuild EVERYTHING from the 4 raw Kaggle CSVs with one command.
+
+Run from the solarsense folder (with the virtual environment active):
+    python run_all.py                     # full rebuild, about 2–3 minutes
+    python run_all.py --skip-validation   # quicker: skips the injected-fault test (~70 s)
+
+Steps: data quality → clean → expected-output model → fault detection → unusual-day score
+→ losses → validation. Each step reads the previous step's files, so the order matters.
+"""
+
+import argparse
+import sys
+import time
+
+from engine import config
+
+
+def check_raw_data():
+    """Stop early with a friendly message if any raw CSV is missing."""
+    missing = [path.name for path in config.RAW_FILES.values() if not path.exists()]
+    if missing:
+        sys.exit("Raw data not found: " + ", ".join(missing) +
+                 "\nDownload the 4 Kaggle CSVs ('Solar Power Generation Data' by anikannal) into data/raw/ — see README.md.")
+
+
+def make_folders():
+    """Create the output folders (they may not exist on a fresh copy of the project)."""
+    for folder in [config.PROCESSED_DIR, config.MODELS_DIR, config.REPORTS_DIR, config.FIGURES_DIR]:
+        folder.mkdir(parents=True, exist_ok=True)
+
+
+def pipeline_steps(skip_validation):
+    """The steps in order: (name, function). Imports happen here so a broken step names itself clearly."""
+    from engine.anomaly_score import run as anomaly_score
+    from engine.clean_data import clean_all
+    from engine.detect_faults import detect_all
+    from engine.expected_model import build_expected_table
+    from engine.explore_data import explore
+    from engine.losses import compute_losses
+    from engine.validate import validate
+
+    steps = [("1. Data quality report", explore),
+             ("2. Clean and merge", clean_all),
+             ("3. Expected-output model", build_expected_table),
+             ("4. Fault detection", detect_all),
+             ("5. Unusual-day score (optional hint)", anomaly_score),
+             ("6. Energy and money losses", compute_losses)]
+    if not skip_validation:
+        steps.append(("7. Validation with injected faults", validate))
+    return steps
+
+
+def print_summary():
+    """Print the key numbers every judge question is about (all read from reports/metrics.json)."""
+    from engine.metrics import load_metrics
+    m = load_metrics()
+    print("\n================ SUMMARY (from reports/metrics.json) ================")
+    print(f"Clean table: {m['cleaning']['total_rows']:,} rows; Plant {config.DC_SUSPECT_PLANT} DC scaled by "
+          f"{m['cleaning']['dc_scale_factor']} (ASSUMPTION)")
+    for plant in config.PLANTS:
+        info = m["expected_model"][f"plant_{plant}"]
+        chosen = info["chosen_model"]
+        print(f"Plant {plant} model: {chosen}, test R² {info[chosen]['test_all']['r2']} "
+              f"({info[chosen]['test_without_obvious_outages']['r2']} without outages)")
+    print(f"Alerts: {m['alerts']['total']} → {m['alerts']['by_type']}")
+    total = m["losses"]["total"]
+    print(f"Energy lost to faults: {total['fault_loss_kwh']:,.0f} kWh (₹{total['fault_loss_inr']:,.0f} at "
+          f"₹{m['losses']['tariff_inr_per_kwh']}/kWh, assumed); at risk (data gaps): {total['at_risk_kwh']:,.0f} kWh")
+    if "validation" in m:
+        recall = {fault: f"{v['recall_pct']}%" for fault, v in m["validation"]["by_fault"].items()}
+        print(f"Validation (planted faults caught): {recall}")
+    print("Next: run `pytest`, then `uvicorn api.main:app --reload` and open http://localhost:8000")
+
+
+def main():
+    """Run every step in order, timing each one; stop with a clear message if a step fails."""
+    parser = argparse.ArgumentParser(description="Rebuild all SolarSense results from the raw data.")
+    parser.add_argument("--skip-validation", action="store_true", help="skip the slow injected-fault test")
+    args = parser.parse_args()
+
+    check_raw_data()
+    make_folders()
+    started = time.time()
+    for name, step in pipeline_steps(args.skip_validation):
+        print(f"\n▶ {name} …", flush=True)
+        step_started = time.time()
+        try:
+            step()
+        except Exception as error:   # show which step broke, in plain words, then the real error
+            print(f"\n✖ Step '{name}' failed: {error}")
+            raise
+        print(f"  ✔ done in {time.time() - step_started:.1f} s")
+    print(f"\nAll steps finished in {time.time() - started:.0f} s.")
+    print_summary()
+
+
+if __name__ == "__main__":
+    # Windows terminals sometimes cannot print ₹ or ✔; this makes printing always safe.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    main()

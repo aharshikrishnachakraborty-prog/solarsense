@@ -18,12 +18,7 @@ from engine.fault_injection import (TARGET_TYPE, false_alarms_on_clean_days, inj
 from engine.metrics import save_metrics_section
 from engine.validate_report import make_example_chart
 
-SIZE_BUCKETS = {   # how "big" each injected fault was, to show what is easy vs hard to catch
-    "trip": ("hours", [1, 2, 3, 4.01]),
-    "underperformance": ("output kept", [0.6, 0.7, 0.8, 0.851]),
-    "data_gap": ("hours", [1, 1.75, 2.5, 3.01]),
-    "soiling": ("% per day", [0.3, 0.5, 0.75, 1.01]),
-}
+SIZE_BUCKETS = config.VALIDATION_SIZE_BUCKETS   # how "big" each fault was: easy vs hard to catch
 
 
 def injection_runs(test, clean_days, faults, n_runs):
@@ -124,6 +119,7 @@ def validate():
         "soiling_note": "Soiling is tested on Plant 1 only (the only plant with inverters healthy on every test "
                         "day) and on a 10-day window. Its false alarms are Plant 2 inverters whose output trends "
                         "down within those 10 days; on the full 34 days the same rule raised no degradation alert.",
+        "fault_sizes": config.VALIDATION_FAULT_SIZES,   # so the website can label size groups correctly
         "by_fault": summarise(records, false_alarms, len(clean_days)),
         "threshold_tradeoff": tradeoff.to_dict(orient="records"),
     }

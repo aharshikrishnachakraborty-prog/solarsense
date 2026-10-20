@@ -24,7 +24,7 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - [x] **Phase 10** — Plant, Inverter and Alerts pages (P4)
 - [x] **Phase 11** — Extras: A validation + about · B live replay (opt.) · C AI summaries (opt.) (P4 + P3) — A+B done, C skipped
 - [ ] **Phase 12** — Optional: New Site Estimator (P3)
-- [ ] **Phase 13** — One-command pipeline, tests, polish (everyone)
+- [x] **Phase 13** — One-command pipeline, tests, polish (everyone)
 - [ ] **Phase 14** — Deploy for free + presentation pack (P4 + everyone)
 
 ## Log
@@ -168,3 +168,19 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
   with **TODO(team): cite our source**. Loss totals unchanged.
 - Takeaway numbers now use Indian grouping + round .5 up, matching the tiles. Fixed phone overflow from longer date label.
 - Tests: 47 pass. All 6 pages browser-tested at laptop + phone: no console errors, no sideways scroll.
+
+### Phase 13 — One-command pipeline, tests, polish (2026-10-20)
+- `run_all.py`: `python run_all.py` rebuilds everything from the raw CSVs in ~97 s (7 timed steps + summary);
+  `--skip-validation` for a quick rebuild. Friendly stop if raw data is missing or a step fails.
+- **Rebuilt from scratch:** data/processed, models and metrics.json were moved to a backup (not deleted) and
+  rebuilt. Result: every number in metrics.json identical (only the new `fault_sizes` entry added); 6 of 8
+  processed files identical cell-by-cell; the other 2 differ by ≤ 1.1e-12 kW (Random Forest float rounding) —
+  no alert, flag or reported number changed. Reproducible with seed 42.
+- Tests: +`tests/test_model.py` (outputs exist, no negative/blank expected, time split, R² not suspicious),
+  +every alert has a reason and loss, +`/api/settings` test, docstrings on all tests → **53 pass**.
+- Review: validation fault sizes + scatter sample moved to config; no file > 250 lines; every function has a
+  docstring; placeholders `summaries.py` / `site_estimator.py` say "not built".
+- Numbers on the website: removed typed-in thresholds ("85%", "20%", "80–85%", "Top 5", plant list) — they now come
+  from code constants or the API (`GET /api/settings`, `fault_sizes` in /api/validation).
+- README rewritten: 10-step beginner setup + pages, how it works, troubleshooting.
+- Browser-tested all 6 pages (laptop + phone): no console errors, no sideways scroll.

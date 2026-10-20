@@ -54,21 +54,29 @@ def run_detector(table):
     return pd.DataFrame(detect_inverter_events(flagged))
 
 
+def _quarter_hours(limits):
+    """All durations from smallest to largest in 15-minute steps, e.g. (1, 4) -> 1.0, 1.25 … 4.0."""
+    return np.arange(limits[0], limits[1] + 0.25, 0.25)
+
+
 def inject_one(table, fault, plant, inverter, date, rng):
     """Break one inverter-day in place; return a record of exactly what we did."""
     day = (table["plant"] == plant) & (table["inverter"] == inverter) & (table["date"] == date)
     times = table.loc[day, "timestamp"].sort_values()
+    sizes = config.VALIDATION_FAULT_SIZES
     if fault == "trip":
-        hours = rng.choice(np.arange(1, 4.25, 0.25))
-        centre = pd.Timestamp(date) + pd.Timedelta(hours=12) + pd.Timedelta(minutes=15 * int(rng.integers(-4, 5)))
+        hours = rng.choice(_quarter_hours(sizes["trip_hours"]))
+        centre = (pd.Timestamp(date) + pd.Timedelta(hours=sizes["trip_centre_hour"])
+                  + pd.Timedelta(minutes=15 * int(rng.integers(-4, 5))))
         start = centre - pd.Timedelta(hours=hours / 2)
         size = hours
     else:
-        hours = rng.choice(np.arange(2, 6.25, 0.25)) if fault == "underperformance" else rng.choice(np.arange(1, 3.25, 0.25))
-        latest = pd.Timestamp(date) + pd.Timedelta(hours=17) - pd.Timedelta(hours=hours)
-        slots = times[(times >= pd.Timestamp(date) + pd.Timedelta(hours=7)) & (times <= latest)]
+        hours = rng.choice(_quarter_hours(sizes[f"{fault}_hours"]))
+        first_hour, last_hour = sizes["window_hours"]
+        latest = pd.Timestamp(date) + pd.Timedelta(hours=last_hour) - pd.Timedelta(hours=hours)
+        slots = times[(times >= pd.Timestamp(date) + pd.Timedelta(hours=first_hour)) & (times <= latest)]
         start = slots.iloc[int(rng.integers(len(slots)))]
-        size = rng.uniform(0.6, 0.85) if fault == "underperformance" else hours
+        size = rng.uniform(*sizes["underperformance_output_kept"]) if fault == "underperformance" else hours
     start = start.floor("15min")
     end = start + pd.Timedelta(hours=hours)
     window = day & (table["timestamp"] >= start) & (table["timestamp"] < end)
@@ -89,8 +97,8 @@ def inject_one(table, fault, plant, inverter, date, rng):
 
 
 def inject_soiling(table, plant, inverter, rng):
-    """Gradual decline of 0.3–1% per day over all test days for one inverter."""
-    rate = rng.uniform(0.3, 1.0)
+    """Gradual decline (a few tenths of a % per day) over all test days for one inverter."""
+    rate = rng.uniform(*config.VALIDATION_FAULT_SIZES["soiling_pct_per_day"])
     rows = (table["plant"] == plant) & (table["inverter"] == inverter)
     first = pd.Timestamp(table["date"].min())
     day_number = (pd.to_datetime(table.loc[rows, "date"]) - first).dt.days

@@ -31,7 +31,7 @@ function renderPlant({ state, daily, heatmap, losses }) {
 function renderDailyChart(daily) {
   const days = daily.days;
   document.getElementById("daily-title").textContent =
-    `${days.filter((d) => prStatus(d.performance_ratio) === "bad").length} of ${days.length} days below 85% of expected`;
+    `${days.filter((d) => prStatus(d.performance_ratio) === "bad").length} of ${days.length} days below ${fmt.pct(PR_WARN)} of expected`;
   Charts.draw("daily-chart", {
     data: {
       labels: days.map((d) => fmt.date(d.date).slice(0, 6)),
@@ -75,7 +75,7 @@ function renderHeatmap(state, heatmap) {
   const unhealthy = heatmap.inverters.filter((_, row) =>
     heatmap.performance_ratio[row].some((pr) => prStatus(pr) === "bad")).length;
   document.getElementById("heatmap-title").textContent =
-    `${unhealthy} of ${heatmap.inverters.length} inverters had at least one problem day (< 85%)`;
+    `${unhealthy} of ${heatmap.inverters.length} inverters had at least one problem day (< ${fmt.pct(PR_WARN)})`;
 
   const header = [`<div></div>`].concat(heatmap.dates.map((d, i) =>
     `<div class="hm-head">${i % 5 === 0 ? escapeHTML(fmt.date(d).slice(0, 6)) : ""}</div>`));
@@ -91,9 +91,14 @@ function renderHeatmap(state, heatmap) {
     return `<div class="hm-label" title="${escapeHTML(inverter)}">${escapeHTML(inverter)}</div>${cells.join("")}`;
   });
   grid.innerHTML = header.join("") + rows.join("");
+  document.getElementById("hm-legend-ok").textContent = `≥ ${fmt.pct(PR_GOOD)} healthy`;
+  document.getElementById("hm-legend-warn").textContent = `${fmt.pct(PR_WARN)}–${fmt.pct(PR_GOOD)} watch`;
+  document.getElementById("hm-legend-bad").textContent = `< ${fmt.pct(PR_WARN)} problem`;
 }
 
 function renderWorst(state, losses) {
+  document.getElementById("worst-title").textContent =
+    `Top ${losses.top_inverters.length} inverters by energy lost (whole period)`;
   document.getElementById("worst").innerHTML = losses.top_inverters.map((row, i) => `
     <tr>
       <td>${i + 1}</td>

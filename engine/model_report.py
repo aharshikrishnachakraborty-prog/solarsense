@@ -111,7 +111,7 @@ def _scatter_chart(table, metrics):
     fig, axes = plt.subplots(1, len(config.PLANTS), figsize=(11, 5))
     for ax, plant in zip(axes, config.PLANTS):
         test = table[(table["plant"] == plant) & (table["split"] == "test") & (~table["is_missing"])]
-        sample = test.sample(n=min(5000, len(test)), random_state=config.RANDOM_SEED)
+        sample = test.sample(n=min(config.SCATTER_SAMPLE_POINTS, len(test)), random_state=config.RANDOM_SEED)
         info = metrics[f"plant_{plant}"]
         r2 = info[info["chosen_model"]]["test_all"]["r2"]
         ax.scatter(sample["expected_kw"], sample["ac_kw"], s=4, alpha=0.3, color="#1f77b4")

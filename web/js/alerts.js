@@ -26,6 +26,7 @@ function fillFilterOptions() {
   $("f-severity").innerHTML += SEVERITIES.map((s) => `<option>${s}</option>`).join("");
   const types = [...new Set(page.all.map((a) => a.fault_type))].sort();
   $("f-type").innerHTML += types.map((t) => `<option value="${t}">${fmt.fault(t)}</option>`).join("");
+  $("f-plant").innerHTML += page.state.plants.map((p) => `<option value="${p}">Plant ${p}</option>`).join("");
   if (urlParams.get("plant")) $("f-plant").value = urlParams.get("plant");
 }
 

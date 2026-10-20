@@ -2,7 +2,7 @@
 
 async function loadAbout(state) {
   try {
-    const assumptions = await fetchJSON("/api/assumptions");
+    const [assumptions, settings] = await Promise.all([fetchJSON("/api/assumptions"), fetchJSON("/api/settings")]);
     clearError();
     document.getElementById("assumptions").innerHTML = assumptions.map((a) => `
       <tr>
@@ -11,6 +11,9 @@ async function loadAbout(state) {
         <td>${escapeHTML(a.why)}</td>
         <td class="muted">${escapeHTML(a.source)}</td>
       </tr>`).join("");
+    document.getElementById("lim-small").textContent =
+      `Small underperformance (output dropping by less than ${fmt.number(settings.underperformance_drop_pct)}% ` +
+      "below expected) is usually not caught, by design, to avoid false alarms.";
     if (state) {
       document.getElementById("lim-days").textContent =
         `Only ${state.dates.length} days of data (${fmt.date(state.dates[0])} – ${fmt.date(state.dates[state.dates.length - 1])}), ` +
