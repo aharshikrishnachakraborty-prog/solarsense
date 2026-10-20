@@ -7,6 +7,8 @@ SolarSense compares what every inverter **actually** produced with what it **sho
 for the weather, flags likely faults with a plain-English reason, and estimates the energy (kWh) and
 money (₹) lost — shown on a web dashboard that operators can act on.
 
+**Live demo:** https://ojasguptaa.github.io/solarsense/ — a static copy of the dashboard (no install needed).
+
 ## Setup in 10 steps (Windows, PowerShell)
 
 1. **Install Python 3.12** from python.org (3.10–3.12 work; 3.13+ is too new for some libraries).
@@ -62,6 +64,14 @@ reports/  metrics.json (every number shown), data_quality.md, model_card.md, ass
 tests/    pytest checks
 data/     raw/ (Kaggle CSVs, not in git) and processed/ (pipeline outputs)
 ```
+
+## The online demo (GitHub Pages)
+
+https://ojasguptaa.github.io/solarsense/ is rebuilt automatically on every push to `main`
+(`.github/workflows/pages.yml`). GitHub Pages cannot run Python, so `python -m api.export_static` saves every
+answer the API can give (every plant, date, inverter and alert) as JSON files, and the website reads those
+instead — the numbers are identical to the live API. Differences: Acknowledge / Resolve are saved only in your
+own browser, and the data is the version committed to the repository (re-run `python run_all.py` and push to update).
 
 ## Troubleshooting
 

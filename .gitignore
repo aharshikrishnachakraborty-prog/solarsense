@@ -14,3 +14,6 @@ models/*.joblib
 
 # Alert statuses changed while using the dashboard (local state, not code)
 data/processed/alert_status.json
+
+# Static GitHub Pages copy — built by the GitHub Action (python -m api.export_static), never committed
+site/

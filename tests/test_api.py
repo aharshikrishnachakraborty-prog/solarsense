@@ -194,3 +194,10 @@ def test_settings_match_config(client):
     body = client.get("/api/settings").json()
     assert body["underperformance_drop_pct"] == -config.UNDER_RESIDUAL_PCT_MAX
     assert body["tariff_inr_per_kwh"] == config.TARIFF_INR_PER_KWH
+
+
+def test_static_file_names_match_the_website():
+    """The static export must name files exactly like staticFile() in web/js/api.js."""
+    from api.export_static import static_name
+    assert static_name({}) == "index"
+    assert static_name({"plant": "2", "date": "2020-05-27"}) == "date-2020-05-27__plant-2"

@@ -1,0 +1,44 @@
+# Publishes the dashboard to GitHub Pages: https://ojasguptaa.github.io/solarsense/
+# On every push to main, GitHub builds a static copy (python -m api.export_static) and publishes it.
+# One-time setup: repository Settings → Pages → Source: "GitHub Actions".
+name: Publish dashboard to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # also adds a "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:                # if two pushes happen quickly, only the newest one is published
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the website's libraries (+ httpx for the exporter's test client)
+        run: pip install -r requirements-deploy.txt httpx==0.28.1
+      - name: Build the static copy from the committed results
+        run: python -m api.export_static site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

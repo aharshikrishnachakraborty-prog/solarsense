@@ -98,7 +98,7 @@ function renderValidation(v) {
 
   const ex = v.example_chart;
   if (ex) {
-    document.getElementById("example-img").src = `/figures/${ex.file.split("/").pop()}`;
+    document.getElementById("example-img").src = `figures/${ex.file.split("/").pop()}`;   // relative: works in a sub-folder too
     document.getElementById("example-caption").textContent =
       `Plant ${ex.plant}, inverter ${ex.inverter}, ${fmt.date(ex.date)}: we cut output to ${ex.output_kept_pct}%. ` +
       `The detector raised an underperformance alert and estimated ${fmt.kwh(ex.estimated_kwh)} lost (true planted loss: ${fmt.kwh(ex.true_kwh)}).`;

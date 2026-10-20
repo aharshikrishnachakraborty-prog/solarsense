@@ -194,3 +194,9 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
   Python 3.12.11, start `uvicorn api.main:app --host 0.0.0.0 --port $PORT`, health check `/api/health`).
 - Rehearsal in a fresh venv with only the deploy requirements: all endpoints + pages + figures OK
   (~0.2–0.4 s each), memory 147 MB (peak 161 MB) — fits Render free (512 MB).
+- **GitHub Pages copy (requested):** https://ojasguptaa.github.io/solarsense/ — static export
+  `python -m api.export_static` (2,208 saved API answers, 35.8 MB) + `web/js/mode.js` static switch +
+  `.github/workflows/pages.yml` (builds and publishes on every push). Tested locally under /solarsense/ with a
+  plain file server: all 6 pages, plant switch, alert panel, Acknowledge (saved in browser), live replay,
+  figures — no console errors, laptop + phone. Repo to be made public by the team (Pages needs it on a free plan).
+- Removed a stray "ma" line accidentally committed in PROMPTS.md. Tests: 54 pass.

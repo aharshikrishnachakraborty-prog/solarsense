@@ -20,18 +20,36 @@ const AVE_LABEL = "Actual vs expected";
 const AVE_TIP = "Above 100% means the plant produced more than our model estimated.";
 const TARIFF_LABEL = "assumed tariff — see About";
 
-/** Ask the API for JSON. Throws an Error with a friendly message if anything goes wrong. */
+const STATIC_MISSING_MESSAGE = "This data is not in the static demo copy. Try another plant or date.";
+
+/**
+ * Static demo copy (GitHub Pages): the file holding the saved answer to one API request.
+ * Must match api/export_static.py exactly, e.g. /api/overview {plant: 2, date: "2020-05-27"}
+ * → static-api/overview/date-2020-05-27__plant-2.json
+ */
+function staticFile(path, params) {
+  const endpoint = path.replace(/^\/?api\//, "");
+  const keys = Object.keys(params).sort();
+  const name = keys.length ? keys.map((key) => `${key}-${params[key]}`).join("__") : "index";
+  return `static-api/${endpoint}/${name}.json`;
+}
+
+/** Ask the API (or, in the static copy, the saved file) for JSON. Throws an Error with a friendly message. */
 async function fetchJSON(path, params = {}, options = {}) {
-  const query = new URLSearchParams(
-    Object.entries(params).filter(([, value]) => value !== null && value !== undefined && value !== "")
-  ).toString();
+  const usable = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== null && value !== undefined && value !== ""));
+  if (STATIC_SITE && options.method === "POST") return saveStatusInBrowser(path, JSON.parse(options.body));
+  // Relative address (no leading "/"), so the site also works inside a sub-folder like /solarsense/.
+  const query = new URLSearchParams(usable).toString();
+  const url = STATIC_SITE ? staticFile(path, usable) : (query ? `${path}?${query}` : path).replace(/^\//, "");
   let response;
   try {
-    response = await fetch(query ? `${path}?${query}` : path, options);
+    response = await fetch(url, options);
   } catch (networkError) {
     throw new Error(OFFLINE_MESSAGE);
   }
   if (!response.ok) {
+    if (STATIC_SITE) throw new Error(STATIC_MISSING_MESSAGE);
     let detail = `Request failed (${response.status}).`;
     try {
       const body = await response.json();
@@ -39,7 +57,8 @@ async function fetchJSON(path, params = {}, options = {}) {
     } catch (ignored) { /* the error body was not JSON — keep the generic message */ }
     throw new Error(escapeHTML(detail));   // escaped: it will be shown as HTML in the banner
   }
-  return response.json();
+  const body = await response.json();
+  return STATIC_SITE ? applyBrowserStatuses(body) : body;
 }
 
 /** Send JSON to the API (used for changing an alert's status). */
@@ -49,6 +68,33 @@ function postJSON(path, body) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+}
+
+// ---------- Static copy only: alert statuses are kept in this browser ----------
+const STATUS_KEY = "solarsense-static-statuses";
+
+function readBrowserStatuses() {
+  try { return JSON.parse(window.localStorage.getItem(STATUS_KEY)) || {}; } catch (e) { return {}; }
+}
+
+/** Static copy: "Acknowledge / Resolve" is saved in this browser only (there is no server to save it). */
+function saveStatusInBrowser(path, { status }) {
+  const id = decodeURIComponent(path.split("/").slice(-2)[0]);
+  const statuses = readBrowserStatuses();
+  const local = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);   // this computer's local time
+  statuses[id] = { status, updated_at: local.toISOString().slice(0, 19) };
+  try { window.localStorage.setItem(STATUS_KEY, JSON.stringify(statuses)); } catch (e) { /* not saved — fine */ }
+  return Promise.resolve({ id, ...statuses[id] });
+}
+
+/** Static copy: show this browser's saved statuses on alerts (lists and single alerts). */
+function applyBrowserStatuses(body) {
+  const statuses = readBrowserStatuses();
+  const apply = (alert) => (statuses[alert.id]
+    ? { ...alert, status: statuses[alert.id].status, status_updated_at: statuses[alert.id].updated_at } : alert);
+  if (Array.isArray(body.alerts)) body.alerts = body.alerts.map(apply);
+  if (body.id && body.status) return apply(body);
+  return body;
 }
 
 // ---------- Formatting (Indian number grouping, e.g. 1,23,456) ----------
