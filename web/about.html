@@ -76,6 +76,7 @@
         <ul id="limitations" class="list muted">
           <li id="lim-days">Only a few weeks of data from one season (May–June); accuracy in winter or monsoon is unknown.</li>
           <li>One weather sensor per plant: a cloud over one corner of a plant can look like a fault there. Comparing each inverter with its neighbours reduces this.</li>
+          <li>No cloud sensor and no GPS: the sky (clear → overcast) is read from the sunlight against a clear-sky curve learned from the brightest days — an estimate, not a measurement. The temperature effect is measured from our data; for Plant 2 it is weak evidence.</li>
           <li>No official fault labels exist, so we validated with faults we planted ourselves — see the Validation page.</li>
           <li>Plant 1's DC power was rescaled because the raw values were physically impossible (see assumptions below).</li>
           <li>The ₹ figures use an assumed tariff (configurable) until the team cites a sourced one — see Assumptions below.</li>

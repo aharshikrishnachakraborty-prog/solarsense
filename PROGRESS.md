@@ -203,3 +203,92 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - **Live:** repo made public by the team; Pages source = GitHub Actions. First workflow run succeeded; all 6 pages,
   replay and alerts tested on https://ojasguptaa.github.io/solarsense/ (laptop + phone, no console errors).
 - Still open for the team: tariff source, team names (About page), Kaggle licence, external facts in key_numbers.md.
+
+### Phase W1 — Sky condition from sunlight (2026-10-26) — from WEATHER_PROMPTS.md
+- New `engine/weather.py` (`python -m engine.weather`) + `weather_text.py` (day sentences) + `weather_report.py` (PNG).
+  Settings in `engine/config.py` under "Phase W1". Not yet in `run_all.py` (added in W6, after expected_model).
+- **Clear-sky reference (ASSUMPTION, in assumptions.md):** per plant, 95th percentile of sunlight at each
+  15-min time of day over all 34 days, smoothed over 5 readings. Peak ≈ 1.03 (Plant 1) / 1.01 (Plant 2) kW/m² at ~12:00.
+- Per 15 min: `clear_sky_irr`, `clear_sky_index` (CSI, clipped 0–1.2), `variability` (std of CSI change over 1 h),
+  `sky_label` (Clear ≥ 0.8 and steady / Partly cloudy / Cloudy / Overcast < 0.3). Only judged when the clear sky
+  gives ≥ 0.1 kW/m² (dawn/dusk is noise); a dark midday is still judged (= Overcast). Missing weather stays blank.
+- Daily: avg CSI, % time per label, dominant label, sunshine score 0–100, coverage %, plain-English sentence
+  (e.g. "Clear most of the day, passing clouds after 3:15 PM — 11% less sunlight than a clear day.").
+- Files: `data/processed/weather_15min.parquet`, `weather_daily.parquet`; metrics under `"weather"`;
+  `reports/figures/weather_clear_vs_cloudy.png`.
+- Results — days by dominant sky: Plant 1 Clear 2 / Partly cloudy 31 / Cloudy 1 / Overcast 0 (avg sunshine 71);
+  Plant 2 Clear 10 / Partly cloudy 20 / Cloudy 3 / Overcast 1 (avg sunshine 75). The two plants often see different
+  skies on the same date (22 May: Plant 2 score 96 clear, Plant 1 score 72 partly cloudy).
+- Sanity: midday CSI (10–14 h) on the 3 sunniest days = 0.94 / 0.97; one-reading label flickers 5.3% / 6.2% vs
+  18.5% if labels were random. Plant 1 20 May has only 64% weather coverage → flagged in its sentence, not used
+  as sunniest/cloudiest.
+- Tests: +`tests/test_weather.py` (9) → **63 pass**. No existing file, number or page changed.
+
+### Phase W2 — Temperature effect on power (2026-10-26)
+- New `engine/weather_temperature.py`, called by `python -m engine.weather` (same two weather files, extra columns).
+  Settings in `engine/config.py` under "Phase W2". Chart added to `weather_report.py`, sentence to `weather_text.py`.
+- **Healthy rows without alerts (deliberate change from the prompt):** the weather step must run BEFORE fault detection
+  (W4 makes detection use the sky), so "healthy" = real reading, sunlight ≥ 0.3, not an obvious outage, within ±10% of
+  neighbouring inverters. Cross-check using the last run's alerts gives a similar answer (below).
+- **Temperature coefficient** (efficiency = AC ÷ sunlight, normalised per inverter, straight line vs panel temp;
+  95% range = bootstrap over whole days, 500 runs, seed 42):
+  - Plant 1: **−0.392 %/°C** (95% −0.445 to −0.333), no-alert cross-check −0.408, Phase 3 physics γ −0.41.
+    Holds up in 3 of 4 sunlight bands → solid.
+  - Plant 2: **−0.304 %/°C** (95% −0.446 to −0.153), cross-check −0.378, physics γ −0.25. Holds up in only 1 of 4
+    sunlight bands → **weak evidence**, said so in the verdict. The scatter shows two separate clouds of points.
+  - Both inside the typical silicon range (−0.5 to −0.3), so the measured values are used (fallback −0.4 not needed).
+- **Heat loss** per 15 min, plant level: power at 25 °C = expected ÷ (1 − |coef| × (T − 25)); loss = that − expected
+  (exact form; expected_kw already includes heat). Plant 1 492,219 kWh (8.51% of 25 °C energy), Plant 2 389,705 kWh
+  (6.76%); ₹ at the assumed tariff. Clear days lose ~11%, cloudy days ~3% (clouds keep panels cool).
+- **Panel heating:** module − air ≈ 3.0 °C (Plant 1) / 2.6 °C (Plant 2) per 0.1 kW/m² of sunlight, R² 0.91 / 0.92.
+  Hot hours (panel ≥ 50 °C): 83.75 h / 105 h over 34 days.
+- Daily: min/max air, max panel temp + time, hot hours, heat loss kWh/₹/%, sentence (e.g. "Panels reached 61 °C at
+  1:15 PM — heat cost about 11% of today's energy (24,750 kWh, ₹74,251 at the assumed tariff); 6.25 h above 50 °C.").
+- Outputs: metrics `"temperature"`, assumption `heat_loss_coefficient`, `reports/figures/temperature_vs_efficiency.png`.
+- Tests: +`tests/test_temperature.py` (7) → **70 pass**. No existing number, alert or page changed.
+
+### Phase W3 — Energy waterfall: where did the energy go? (2026-10-26)
+- New `engine/energy_breakdown.py` (`python -m engine.energy_breakdown`) → `energy_breakdown.parquet`, metrics `"breakdown"`.
+- Per plant and day: **clear-sky potential − clouds − heat − faults − not measured − other = actual**, exact by
+  construction ("other" is the remainder; a test checks every day). Order: sky → heat → equipment (no double count).
+  Clouds = blocked sunlight × the plant's power per unit sunlight at 25 °C (31,963 kW Plant 1 — the separate Phase 3
+  physics model gives 31,972; Plant 2 30,348 vs 29,685). Faults = Phase 6 confirmed losses (same numbers).
+  "Not measured" = expected energy while readings were missing (added as its own bar: Plant 2 has many gaps).
+- Both plants, 34 days: potential 1,59,26,945 kWh → clouds 27.5% · heat 5.5% · faults 5.8% · not measured 2.4% ·
+  other −0.04% → actual 58.8%. **Natural 52,59,927 kWh vs fixable 9,27,680 kWh.** Plant 1 faults 0.17%, Plant 2 11.78%.
+- Tests: `tests/test_energy_breakdown.py` (7).
+
+### Phase W4 — Weather-aware fault detection (2026-10-26)
+- New `engine/alert_weather.py`; `detect_faults.py` adds the sky to every reading. Every alert now has
+  `sky_condition`, `avg_csi`, `module_temp_c`, `confidence` (High/Medium/Low) and `weather_note`
+  (e.g. "Sky was clear (clear-sky index 0.98) and panels at 58 °C — … NOT caused by clouds."). `alert_text.py` writes them.
+- Rule tested: under a difficult sky (Overcast or variability ≥ 0.2), a short (< 1.5 h) underperformance event must
+  be ≥ 50% below neighbours. `engine/validate_weather.py`: same seeded faults, before vs after, default + sensitive
+  thresholds, also on cloudy days (sunshine < 70). Result: false alarms 59 → 35 but **13 planted faults lost** →
+  **rule kept OFF** (`WEATHER_AWARE_UNDER = False`), as the prompt required. Trips on cloudy days: 65/65 caught.
+  Underperformance on cloudy days 45/65 vs any day 68/95. The 429 real alerts are unchanged (ids and losses).
+- `reports/model_card.md` gets a generated "Weather-aware fault detection" section; metrics `"validation_weather"`.
+- Tests: `tests/test_weather_alerts.py` (6), incl. "rule ON only if the test said keep".
+
+### Phase W5 — API + Weather & Energy page (2026-10-26)
+- `api/routes/weather.py`: `GET /api/weather/day`, `/api/weather/calendar`, `/api/weather/temperature`,
+  `/api/breakdown` (day / plant period / both plants). Read files only (the W2 step now also saves
+  `temperature_points.parquet` + fitted line and 2 °C averages). Weather files are optional for the rest of the API.
+- `web/weather.html` + `js/weather.js` (nav "Weather & Energy"): takeaway, 5 KPI tiles, sky strip above a
+  sunlight-vs-clear-sky + power chart (Chart.js plugin `Charts.skyStrip`), floating-bar waterfall (day / whole
+  period), air vs panel temperature with hot hours shaded, scatter with fitted line, 34-day calendar (click → day).
+- Static GitHub Pages export includes the new endpoints. Tests: `tests/test_api_weather.py` (10).
+
+### Phase W6 — Weather woven into existing pages + pitch (2026-10-26)
+- Overview: weather mini-card (sky, sunshine score, hottest panel, weather vs fault cost) + sky strip above the chart.
+  Live replay: every tick shows the sky icon and panel temperature (mini-card + takeaway); `/api/replay` ticks carry them.
+- Alert "Why?" panel and Inverter page: sky, panel temperature, confidence badge, weather sentence.
+- No Action Plan / Advisor page exists, so step 4 of W6 did not apply.
+- `run_all.py`: … expected model → **weather** → fault detection → unusual-day → losses → **waterfall** → validation
+  → **weather before/after test**. Summary prints sky days, coefficient, waterfall %, rule verdict.
+- Presentation: slide 8 "Weather intelligence — natural vs fixable losses" (11 slides), judge Q21–25, 30-second
+  Weather & Energy demo in `demo_script.md`, weather section in `key_numbers.md` (generated) and the beginner guide,
+  `figures/7_weather_energy_waterfall.png`. README + About limitations updated.
+- Browser-tested with headless Chrome (laptop 1366 px + phone 390 px emulation): Overview, Weather & Energy,
+  Alerts panel, Inverter page — no console errors, no sideways scroll; replay, calendar click, waterfall toggle and
+  dark theme work.

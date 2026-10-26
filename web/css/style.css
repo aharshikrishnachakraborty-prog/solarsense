@@ -223,3 +223,46 @@ th.sortable:hover { color: var(--text); }
   padding: 10px 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, .18); font-size: 13px; }
 .toast a { color: inherit; text-decoration: none; display: block; }
 .notice { margin: -8px 0 18px; padding: 8px 14px; border-radius: var(--radius); background: var(--info-soft); color: var(--text); font-size: 13px; border: 1px solid var(--border); }
+
+/* ---------- Weather & Energy (Phases W1–W6) ---------- */
+.chart-box.tall { height: 340px; }
+.sky-legend { margin-top: 6px; }
+.sky-legend span::before { display: none; }            /* the generic legend square is replaced by .sky-swatch */
+.sky-swatch { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
+.sky-chip { white-space: nowrap; }
+.conf { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.conf-High { background: var(--ok-soft); color: var(--ok); }
+.conf-Medium { background: var(--warn-soft); color: var(--warn); }
+.conf-Low { background: var(--info-soft); color: var(--info); }
+:root[data-theme="dark"] .conf-Low { color: #cbd5e1; }
+.nat { color: var(--info); font-weight: 600; }
+:root[data-theme="dark"] .nat { color: #9cc3e6; }
+.fix { color: var(--bad); font-weight: 600; }
+.toggle { display: flex; gap: 0; }
+.toggle button { border-radius: 0; font-size: 12px; padding: 4px 10px; }
+.toggle button:first-child { border-radius: 6px 0 0 6px; }
+.toggle button:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
+.toggle button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--link); font-weight: 600; }
+.calendar { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.cal-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
+  padding: 8px 10px; border-left: 5px solid var(--border); background: var(--surface);
+}
+.cal-tile:hover { background: var(--bg); }
+.cal-tile.selected { outline: 2px solid var(--text); outline-offset: -1px; }
+.cal-date { font-size: 12px; color: var(--muted); font-weight: 600; }
+.cal-sky { font-size: 15px; }
+.cal-meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.weather-mini { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; margin-top: var(--gap); }
+.weather-mini .wm-icon { font-size: 30px; line-height: 1; }
+.weather-mini .wm-stat { display: flex; flex-direction: column; min-width: 0; }
+.weather-mini .wm-stat strong { font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.weather-mini .wm-link { margin-left: auto; white-space: nowrap; }
+.weather-note { border-left: 4px solid var(--chart-sun); background: var(--bg); padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+@media (max-width: 640px) {
+  .chart-box.tall { height: 280px; }
+  .weather-mini { gap: 8px 16px; }
+  .weather-mini .wm-link { margin-left: 0; }
+  .calendar { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+}
+.card-head .toggle { margin-bottom: 12px; }

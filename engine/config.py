@@ -207,3 +207,126 @@ VALIDATION_SIZE_BUCKETS = {
 
 # Charts: how many test points to draw in the predicted-vs-actual scatter (keeps the PNG readable).
 SCATTER_SAMPLE_POINTS = 5000
+
+# ---------------------------------------------------------------------------
+# Phase W1 — sky condition from sunlight (engine/weather.py)
+# ---------------------------------------------------------------------------
+# The dataset has no cloud sensor, so we read the sky from the sunlight itself.
+WEATHER_15MIN_FILE = PROCESSED_DIR / "weather_15min.parquet"
+WEATHER_DAILY_FILE = PROCESSED_DIR / "weather_daily.parquet"
+
+# ASSUMPTION: "clear-sky sunlight" at a time of day = this percentile of all 34 days
+# at that time. Not the maximum, so one odd spike (e.g. sunlight reflected off a
+# cloud edge) cannot set the reference. With 34 days, 95% ≈ the 2nd-highest day.
+CLEAR_SKY_PERCENTILE = 95
+# The percentile curve is a little bumpy, so we smooth it with a centred rolling
+# mean of this many 15-minute slots (5 = 1¼ hours) to get a clean bell curve.
+CLEAR_SKY_SMOOTH_SLOTS = 5
+
+# We only judge the sky when a clear sky would give at least this much sunlight.
+# At dawn/dusk the sunlight is tiny, so actual ÷ clear-sky becomes random noise.
+SKY_MIN_CLEAR_SKY_IRR = 0.1
+# Clear-sky index (CSI) = actual ÷ clear-sky sunlight, clipped to this range
+# (a little above 1 is real: sunlight can bounce off cloud edges).
+CSI_CLIP = (0.0, 1.2)
+# Variability = how much the CSI jumps between readings (std of its change),
+# measured over this many changes, centred on the reading (4 changes = 1 hour).
+VARIABILITY_WINDOW_SLOTS = 4
+
+# Sky labels for each 15-minute reading (CSI = clear-sky index):
+CSI_CLEAR_MIN = 0.8            # CSI ≥ 0.8 → Clear (if the sunlight is also steady)
+CSI_PARTLY_MIN = 0.5           # 0.5 – 0.8 → Partly cloudy
+CSI_CLOUDY_MIN = 0.3           # 0.3 – 0.5 → Cloudy;  below 0.3 → Overcast
+# A "clear" reading whose sunlight jumps more than this is really passing clouds
+# → Partly cloudy. (Steady clear sky changes by only a few % between readings.)
+VARIABILITY_CLEAR_MAX = 0.1
+SKY_LABELS = ["Clear", "Partly cloudy", "Cloudy", "Overcast"]
+
+# The day's sentence says "clouds after 2 PM" only if the part after the change
+# lasts at least this many readings (6 = 1½ hours), so the last dim hour before
+# sunset does not become "clouds after 5 PM" on an otherwise clear day.
+SKY_CHANGE_MIN_SLOTS = 6
+# Sanity check: on the sunniest days, the clear-sky index between these hours
+# (10:00 to 13:59, sun high, no dawn/dusk effects) should be close to 1.
+SANITY_MIDDAY_HOURS = (10, 14)
+# On a mostly clear day, "clouds after 3 PM" is only said if at least this share
+# of the readings after 3 PM really are not clear.
+LATE_CLOUDS_MIN_SHARE = 0.75
+# A day with a sunshine score at or above this is "about as sunny as a clear day"
+# (the clear-sky curve is itself a percentile, so even the best day is ~95, not 100).
+SUNSHINE_AS_CLEAR_MIN = 95
+# Days whose weather sensor missed more than this share of sky readings get a warning.
+SKY_MIN_COVERAGE_PCT = 80
+
+# ---------------------------------------------------------------------------
+# Phase W2 — temperature effect on power (engine/weather_temperature.py)
+# ---------------------------------------------------------------------------
+# Panel ratings are measured at 25 °C ("standard test conditions"); hotter = less power.
+REFERENCE_PANEL_TEMP_C = 25.0
+# Rows used to MEASURE the temperature coefficient: good sunlight (efficiency is
+# noisy in weak light) and a healthy inverter. "Healthy" does not use alerts,
+# because the weather step runs BEFORE fault detection (fault detection uses the sky).
+TEMP_FIT_MIN_IRRADIATION = 0.3
+TEMP_FIT_PEER_TOLERANCE = 0.1     # inverter within ±10% of its neighbours at that moment
+# 95% confidence range: refit this many times on days drawn at random (with
+# replacement). Whole days, because readings within one day are not independent.
+TEMP_FIT_BOOTSTRAP_RUNS = 500
+# Robustness check: the same fit inside narrow sunlight bands (kW/m² edges).
+TEMP_FIT_IRRADIATION_BANDS = [0.3, 0.5, 0.7, 0.9, 1.3]
+# Typical crystalline-silicon panel coefficient (%/°C), from panel datasheets.
+TYPICAL_TEMP_COEF_RANGE = (-0.5, -0.3)
+# ASSUMPTION fallback: if a plant's fitted coefficient falls outside this wider
+# "believable" range, heat loss uses the typical middle value instead.
+BELIEVABLE_TEMP_COEF_RANGE = (-0.8, -0.15)
+FALLBACK_TEMP_COEF_PCT = -0.4
+# "Hot hour": panel temperature at or above this. At −0.4 %/°C, 50 °C already
+# costs ~10% of the power a 25 °C panel would make.
+HOT_MODULE_TEMP_C = 50.0
+# Chart: average efficiency per this many °C, drawn as dots over the scatter
+# (bins with fewer readings than TEMP_CHART_MIN_BIN_READINGS are skipped as untrustworthy).
+TEMP_CHART_BIN_C = 2
+TEMP_CHART_MIN_BIN_READINGS = 30
+# The website's scatter shows a random sample of this many healthy readings per plant.
+TEMPERATURE_POINTS_FILE = PROCESSED_DIR / "temperature_points.parquet"
+TEMP_WEB_SCATTER_POINTS = 2000
+
+# ---------------------------------------------------------------------------
+# Phase W3 — energy waterfall: where did the energy go? (engine/energy_breakdown.py)
+# ---------------------------------------------------------------------------
+ENERGY_BREAKDOWN_FILE = PROCESSED_DIR / "energy_breakdown.parquet"
+# The plant's "power at 25 °C per unit of sunlight" is measured on readings with
+# at least this much sunlight (weak light is noisy). Used to price blocked sunlight.
+BREAKDOWN_FIT_MIN_IRRADIATION = 0.3
+# Waterfall parts in the order they are subtracted, and whether anyone can fix them.
+BREAKDOWN_PARTS = {"cloud_loss_kwh": "natural", "heat_loss_kwh": "natural", "fault_loss_kwh": "fixable",
+                   "not_measured_kwh": "unknown", "other_kwh": "unknown"}
+
+# ---------------------------------------------------------------------------
+# Phase W4 — weather-aware fault detection (engine/alert_weather.py)
+# ---------------------------------------------------------------------------
+# "Difficult sky" for judging output: Overcast, or sunlight jumping around a lot
+# (variability at/above this ≈ the most changeable quarter of daylight readings).
+# Then one sunlight sensor cannot describe the whole plant: a cloud shadow can
+# cover some inverters and not others, so % deviations get noisy.
+SKY_HIGH_VARIABILITY = 0.2
+# Weather-aware underperformance rule — switched OFF on purpose. The before/after
+# test (python -m engine.validate_weather, "validation_weather" in metrics.json)
+# showed it cuts false alarms by ~40% at sensitive thresholds BUT loses some real
+# injected faults (short, partial ones under a changing sky). Our rule was: keep it
+# only if nothing real is lost — so it stays off. Alerts still get the sky, a
+# confidence level and a weather sentence (those never change what is detected).
+WEATHER_AWARE_UNDER = False
+# An underperformance event counts as "under a difficult sky" when at least this
+# share of its flagged readings were difficult-sky readings...
+UNDER_DIFFICULT_SKY_SHARE = 0.5
+# ...and then it needs STRONGER evidence: last at least this many readings (6 = 1½ h,
+# longer than a passing cloud shadow) OR be far below its neighbours (output at or
+# below this share of the peer median, i.e. at least 50% lower).
+UNDER_DIFFICULT_MIN_INTERVALS = 6
+UNDER_STRONG_PEER_RATIO = 0.5
+# Alert confidence levels (lowest first). Underperformance under a strong peer gap
+# (UNDER_STRONG_PEER_RATIO) is raised one level.
+CONFIDENCE_LEVELS = ["Low", "Medium", "High"]
+# Validation on cloudy days: a day counts as "cloudy" below this sunshine score (W1).
+VALIDATION_CLOUDY_DAY_MAX_SUNSHINE = 70
+VALIDATION_WEATHER_FILE = PROCESSED_DIR / "validation_weather.parquet"

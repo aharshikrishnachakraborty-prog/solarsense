@@ -120,9 +120,11 @@ function renderAlertList(detail) {
   }
   list.innerHTML = detail.alerts.slice().reverse().map((a) => `
     <li><a href="alerts.html?id=${encodeURIComponent(a.id)}">
-      <div class="list-title">${severityBadge(a.severity)} ${fmt.fault(a.fault_type)} <span class="status ${a.status}">${a.status}</span></div>
+      <div class="list-title">${severityBadge(a.severity)} ${fmt.fault(a.fault_type)} <span class="status ${a.status}">${a.status}</span>
+        ${confidenceBadge(a.confidence)}</div>
       <div class="list-meta">${fmt.date(a.start)} ${fmt.time(a.start)}–${fmt.time(a.end)} ·
-        ${a.energy_at_risk_kwh > 0 ? `${fmt.kwh(a.energy_at_risk_kwh)} at risk` : `${fmt.kwh(a.energy_loss_kwh)} lost`}</div>
+        ${a.energy_at_risk_kwh > 0 ? `${fmt.kwh(a.energy_at_risk_kwh)} at risk` : `${fmt.kwh(a.energy_loss_kwh)} lost`}
+        ${a.sky_condition ? ` · ${skyChip(a.sky_condition)}` : ""}${a.module_temp_c === null || a.module_temp_c === undefined ? "" : ` · panels ${fmt.number(a.module_temp_c)} °C`}</div>
     </a></li>`).join("");
 }
 

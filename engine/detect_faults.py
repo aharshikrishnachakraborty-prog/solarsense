@@ -1,8 +1,7 @@
-"""Detect faults with simple, explainable rules and turn them into alerts (Phase 4).
+"""Detect faults with simple, explainable rules and turn them into alerts (Phase 4; weather-aware since W4).
 
 Run from the solarsense folder with:   python -m engine.detect_faults
-Reads data/processed/expected.parquet, writes data/processed/alerts.parquet.
-All thresholds live in engine/config.py.
+Reads expected.parquet (+ the sky from weather_15min.parquet), writes alerts.parquet. Thresholds: engine/config.py.
 """
 
 import json
@@ -11,7 +10,8 @@ import numpy as np
 import pandas as pd
 
 from engine import config
-from engine.alert_text import RECOMMENDED_ACTIONS, make_reason, make_severity
+from engine.alert_text import RECOMMENDED_ACTIONS, make_confidence, make_reason, make_severity, make_weather_note
+from engine.alert_weather import add_sky_context, needs_more_proof, sky_evidence
 from engine.metrics import load_metrics, save_metrics_section
 
 INTERVAL = pd.Timedelta(minutes=15)
@@ -20,7 +20,8 @@ TYPE_CODES = {"INVERTER_TRIP": "TRIP", "UNDERPERFORMANCE": "UNDER", "DEGRADATION
 
 
 def add_interval_flags(table):
-    """Mark every 15-minute daylight row that breaks a trip, underperformance or gap rule."""
+    """Mark every 15-minute daylight row that breaks a trip, underperformance or gap rule (sky added too)."""
+    table = add_sky_context(table)
     present = ~table["is_missing"]
     table["trip_flag"] = (present & (table["irradiation"] >= config.TRIP_IRRADIATION_MIN)
                           & (table["ac_kw"] <= config.TRIP_AC_MAX_KW))
@@ -87,6 +88,9 @@ def interval_alerts(table, fault_type, flag_column, min_intervals, blocker_colum
                         "avg_peer_ratio": round(float(flagged["peer_ratio"].mean()), 3),
                         "others_down_pct": round(float(flagged["others_down_pct"].mean()), 1)}
             evidence.update(energy_numbers(flagged))
+            evidence.update(sky_evidence(flagged))
+            if needs_more_proof(fault_type, evidence):   # weather-aware rule (Phase W4)
+                continue
             events.append({"plant": plant, "inverter": inverter, "fault_type": fault_type,
                            "start": event["start"], "end": event["end"], "evidence": evidence})
     return events
@@ -133,7 +137,8 @@ def overheating_alerts(table):
     for plant, rows in table.groupby("plant"):
         moments = rows.groupby("timestamp").agg(
             module_temp=("module_temp", "first"), ambient_temp=("ambient_temp", "first"),
-            plant_ratio=("peer_median_ratio", "first"), expected_kw=("expected_kw", "sum")).reset_index()
+            plant_ratio=("peer_median_ratio", "first"), expected_kw=("expected_kw", "sum"),
+            **{column: (column, "first") for column in ["sky_label", "clear_sky_index", "difficult_sky"]}).reset_index()
         moments["temp_delta"] = moments["module_temp"] - moments["ambient_temp"]
         moments["heat_flag"] = ((moments["temp_delta"] >= config.OVERHEAT_DELTA_MIN_C)
                                 & (moments["plant_ratio"] <= config.OVERHEAT_PLANT_RATIO_MAX))
@@ -146,7 +151,7 @@ def overheating_alerts(table):
                         "avg_plant_ratio": round(float(hot["plant_ratio"].mean()), 3),
                         "energy_loss_kwh": round(float((hot["expected_kw"] * (1 - hot["plant_ratio"])).sum()
                                                        * config.INTERVAL_HOURS), 1),
-                        "energy_at_risk_kwh": 0.0}
+                        "energy_at_risk_kwh": 0.0, **sky_evidence(hot)}
             events.append({"plant": plant, "inverter": "ALL", "fault_type": "OVERHEATING",
                            "start": event["start"], "end": event["end"], "evidence": evidence})
     return events
@@ -195,9 +200,16 @@ def events_to_alerts(events):
     alerts["energy_at_risk_kwh"] = [ev["energy_at_risk_kwh"] for ev in alerts["evidence"]]
     alerts["recommended_action"] = alerts["fault_type"].map(RECOMMENDED_ACTIONS)
     alerts["status"] = "Open"
+    # Phase W4: the sky and panel temperature during the alert, a confidence level and a weather sentence.
+    alerts["sky_condition"] = [ev.get("sky_condition") for ev in alerts["evidence"]]
+    alerts["avg_csi"] = [ev.get("avg_csi") for ev in alerts["evidence"]]
+    alerts["module_temp_c"] = [ev.get("avg_module_temp_c") for ev in alerts["evidence"]]
+    alerts["confidence"] = [make_confidence(t, ev) for t, ev in zip(alerts["fault_type"], alerts["evidence"])]
+    alerts["weather_note"] = [make_weather_note(t, ev) for t, ev in zip(alerts["fault_type"], alerts["evidence"])]
     alerts["evidence"] = [json.dumps(ev) for ev in alerts["evidence"]]   # stored as text in parquet
     return alerts[["id", "plant", "inverter", "fault_type", "start", "end", "duration_hours", "severity",
-                   "energy_loss_kwh", "energy_at_risk_kwh", "reason", "evidence", "recommended_action", "status"]]
+                   "energy_loss_kwh", "energy_at_risk_kwh", "reason", "evidence", "recommended_action", "status",
+                   "sky_condition", "avg_csi", "module_temp_c", "confidence", "weather_note"]]
 
 
 def detect_inverter_events(table):
@@ -218,16 +230,15 @@ def detect_all():
     alerts = events_to_alerts(events)
     alerts.to_parquet(config.ALERTS_FILE, index=False)
 
-    counts = {"total": int(len(alerts)),
-              "by_type": alerts["fault_type"].value_counts().to_dict(),
-              "by_severity": alerts["severity"].value_counts().to_dict(),
-              "by_plant_and_type": {f"plant_{p}": g["fault_type"].value_counts().to_dict()
-                                    for p, g in alerts.groupby("plant")},
+    def tally(column):
+        """{value: count} as plain integers (JSON cannot store numpy numbers)."""
+        return {key: int(value) for key, value in column.value_counts().items()}
+    counts = {"total": int(len(alerts)), "by_type": tally(alerts["fault_type"]),
+              "by_severity": tally(alerts["severity"]), "by_confidence": tally(alerts["confidence"]),
+              "by_plant_and_type": {f"plant_{p}": tally(g["fault_type"]) for p, g in alerts.groupby("plant")},
               "inverters_with_alerts": {f"plant_{p}": int(g.loc[g["inverter"] != "ALL", "inverter"].nunique())
-                                        for p, g in alerts.groupby("plant")}}
-    counts["by_type"] = {k: int(v) for k, v in counts["by_type"].items()}
-    counts["by_severity"] = {k: int(v) for k, v in counts["by_severity"].items()}
-    counts["by_plant_and_type"] = {p: {k: int(v) for k, v in d.items()} for p, d in counts["by_plant_and_type"].items()}
+                                        for p, g in alerts.groupby("plant")},
+              "weather_aware_underperformance": config.WEATHER_AWARE_UNDER}
     save_metrics_section("alerts", counts)
     return alerts, counts
 
@@ -235,4 +246,5 @@ def detect_all():
 if __name__ == "__main__":
     all_alerts, alert_counts = detect_all()
     print(f"Saved {len(all_alerts)} alerts to {config.ALERTS_FILE}")
-    print(json.dumps({k: alert_counts[k] for k in ["by_type", "by_severity", "inverters_with_alerts"]}, indent=2))
+    print(json.dumps({k: alert_counts[k] for k in ["by_type", "by_severity", "by_confidence",
+                                                    "inverters_with_alerts"]}, indent=2))

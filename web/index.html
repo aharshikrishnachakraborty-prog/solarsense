@@ -22,6 +22,9 @@
       <div class="card"><div class="skeleton"></div></div><div class="card"><div class="skeleton"></div></div>
     </section>
 
+    <!-- Weather mini-card (Phases W1–W3): sky, panel temperature, natural vs fixable losses -->
+    <section id="weather-mini" class="card weather-mini" aria-label="Weather on this day" hidden></section>
+
     <section class="grid grid-main">
       <div class="card">
         <div class="card-head">
@@ -56,6 +59,7 @@
           <li><strong>Actual vs expected</strong> = actual ÷ expected energy. 100% means the plant made exactly what our model estimated for the weather; above 100% means it produced more than estimated.</li>
           <li><strong>Energy lost</strong> counts only detected faults (trips, underperformance…).</li>
           <li><strong>At risk</strong> = energy we could not verify because readings were missing.</li>
+          <li>The <strong>coloured band</strong> above the chart is the sky, read from the sunlight: ☀️ clear, ⛅ partly cloudy, ☁️ cloudy, 🌫️ overcast.</li>
           <li>Use <strong>Replay date</strong> (top right) to step through the days. It opens on the day with the highest energy loss.</li>
         </ul>
       </div>

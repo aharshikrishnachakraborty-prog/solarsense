@@ -1,11 +1,13 @@
 """Rebuild EVERYTHING from the 4 raw Kaggle CSVs with one command.
 
 Run from the solarsense folder (with the virtual environment active):
-    python run_all.py                     # full rebuild, about 2–3 minutes
-    python run_all.py --skip-validation   # quicker: skips the injected-fault test (~70 s)
+    python run_all.py                     # full rebuild, about 3 minutes
+    python run_all.py --skip-validation   # quicker (~15 s): skips both injected-fault tests
 
-Steps: data quality → clean → expected-output model → fault detection → unusual-day score
-→ losses → validation. Each step reads the previous step's files, so the order matters.
+Steps: data quality → clean → expected-output model → weather (sky + heat) → fault detection → unusual-day
+score → losses → energy waterfall → validation → weather-aware validation (before/after).
+Each step reads the previous step's files, so the order matters: fault detection uses the sky from the
+weather step, and the waterfall needs both the heat loss (weather) and the fault losses (losses).
 """
 
 import argparse
@@ -37,16 +39,22 @@ def pipeline_steps(skip_validation):
     from engine.expected_model import build_expected_table
     from engine.explore_data import explore
     from engine.losses import compute_losses
+    from engine.energy_breakdown import compute_breakdown
     from engine.validate import validate
+    from engine.validate_weather import validate_weather
+    from engine.weather import build_weather
 
     steps = [("1. Data quality report", explore),
              ("2. Clean and merge", clean_all),
              ("3. Expected-output model", build_expected_table),
-             ("4. Fault detection", detect_all),
-             ("5. Unusual-day score (optional hint)", anomaly_score),
-             ("6. Energy and money losses", compute_losses)]
+             ("4. Weather: sky from sunlight + heat loss", build_weather),
+             ("5. Fault detection (with the sky for every alert)", detect_all),
+             ("6. Unusual-day score (optional hint)", anomaly_score),
+             ("7. Energy and money losses", compute_losses),
+             ("8. Energy waterfall: natural vs fixable losses", compute_breakdown)]
     if not skip_validation:
-        steps.append(("7. Validation with injected faults", validate))
+        steps += [("9. Validation with injected faults", validate),
+                  ("10. Weather-aware detection: before/after test", validate_weather)]
     return steps
 
 
@@ -69,6 +77,15 @@ def print_summary():
     if "validation" in m:
         recall = {fault: f"{v['recall_pct']}%" for fault, v in m["validation"]["by_fault"].items()}
         print(f"Validation (planted faults caught): {recall}")
+    for plant in config.PLANTS:
+        sky, heat = m["weather"]["by_plant"][f"plant_{plant}"], m["temperature"]["by_plant"][f"plant_{plant}"]
+        print(f"Plant {plant} sky by day {sky['days_by_dominant_sky']}; heat costs {heat['coefficient_pct_per_c']} %/°C "
+              f"(95% {heat['ci95_pct_per_c']})")
+    pct = m["breakdown"]["total"]["pct_of_potential"]
+    print(f"Waterfall (both plants, % of clear-sky potential): clouds {pct['clouds']}%, heat {pct['heat']}%, "
+          f"faults {pct['faults']}%, not measured {pct['not measured']}%, other {pct['other']}% → actual {pct['actual']}%")
+    if "validation_weather" in m:
+        print(f"Weather-aware rule: {m['validation_weather']['verdict']}")
     print("Next: run `pytest`, then `uvicorn api.main:app --reload` and open http://localhost:8000")
 
 

@@ -52,6 +52,41 @@ Charts.shade = (ranges) => ({
   },
 });
 
+/**
+ * Chart.js plugin: a coloured sky band just above the plot, one block per 15-minute label (Phase W1).
+ * skyLabels: one sky label (or null) per chart label. The chart needs options.layout.padding.top ≥ 16
+ * and its legend at the bottom, so the band has room above the plot.
+ */
+Charts.skyStrip = (skyLabels) => ({
+  id: "skyStrip",
+  afterDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    const step = skyLabels.length > 1 ? scales.x.getPixelForValue(1) - scales.x.getPixelForValue(0) : chartArea.width;
+    ctx.save();
+    skyLabels.forEach((label, i) => {
+      if (!label || !SKY[label]) return;
+      const left = Math.max(scales.x.getPixelForValue(i) - step / 2, chartArea.left);
+      const right = Math.min(scales.x.getPixelForValue(i) + step / 2, chartArea.right);
+      ctx.fillStyle = SKY[label].color;
+      ctx.fillRect(left, chartArea.top - 14, right - left + 0.5, 10);
+    });
+    ctx.restore();
+  },
+});
+
+/** Chart options that make room for the sky strip (legend moves below the chart). */
+Charts.skyStripOptions = (options) => {
+  options.layout = { padding: { top: 16 } };
+  options.plugins = Object.assign({}, options.plugins, {
+    legend: { position: "bottom", labels: { color: Charts.color("--text"), usePointStyle: true, boxHeight: 7 } },
+  });
+  return options;
+};
+
+/** Small HTML legend for the sky strip: ☀️ Clear ⛅ Partly cloudy … */
+Charts.skyLegend = () => Object.entries(SKY)
+  .map(([label, s]) => `<span><i class="sky-swatch" style="background:${s.color}"></i>${s.icon} ${label}</span>`).join("");
+
 /** Turn a list of true/false flags (one per chart label) into shade ranges. */
 Charts.rangesFromFlags = (flags, color) => {
   const ranges = [];

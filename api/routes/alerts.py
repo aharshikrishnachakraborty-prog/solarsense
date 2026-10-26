@@ -12,7 +12,8 @@ router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 
 ALERT_FIELDS = ["id", "plant", "inverter", "fault_type", "start", "end", "duration_hours", "severity",
                 "energy_loss_kwh", "energy_at_risk_kwh", "money_loss_inr", "money_at_risk_inr", "reason",
-                "recommended_action", "status", "status_updated_at"]
+                "recommended_action", "status", "status_updated_at",
+                "confidence", "sky_condition", "avg_csi", "module_temp_c", "weather_note"]   # last 5: Phase W4
 EVIDENCE_MARGIN = pd.Timedelta(hours=1)   # show a bit of normal behaviour before/after the fault
 
 

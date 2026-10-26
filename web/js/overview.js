@@ -7,25 +7,27 @@ async function loadOverview(state) {
   if (typeof Replay !== "undefined") Replay.stop(false);   // a new plant/date ends any running replay
   document.getElementById("all-alerts-link").href = `alerts.html?plant=${plant}`;
   try {
-    const [overview, series, attention, losses] = await Promise.all([
+    const [overview, series, attention, losses, weather] = await Promise.all([
       fetchJSON("/api/overview", { plant, date }),
       fetchJSON("/api/plant/timeseries", { plant, date }),
       fetchJSON("/api/alerts", { plant, date, status: "Active", sort: "severity", limit: 5, include_notices: false }),
       fetchJSON("/api/losses", { plant }),
+      fetchJSON("/api/weather/day", { plant, date }).catch(() => null),   // optional: page works without it
     ]);
     clearError();
-    lastData = { overview, series, attention, losses };
+    lastData = { overview, series, attention, losses, weather };
     renderAll(lastData);
   } catch (error) {
     showError(error.message);
   }
 }
 
-function renderAll({ overview, series, attention, losses }) {
+function renderAll({ overview, series, attention, losses, weather }) {
   document.getElementById("takeaway").textContent = overview.takeaway;
   renderKpis(overview);
   renderNotices(overview.data_quality_notices);
-  renderDayChart(overview, series);
+  renderWeatherMini(weather);
+  renderDayChart(overview, series, weather);
   renderAttention(attention);
   renderLossChart(losses);
 }
@@ -79,8 +81,30 @@ function renderNotices(notices) {
     `(no energy lost) — ${escapeHTML(short)} <a href="about.html">Details on the About page →</a>`;
 }
 
-function renderDayChart(overview, series) {
+/** Weather mini-card: sky, sunshine score, hottest panel, natural (weather) vs fixable (fault) losses. */
+function renderWeatherMini(weather) {
+  const card = document.getElementById("weather-mini");
+  card.hidden = !weather;
+  if (!weather) return;
+  const d = weather.day;
+  const sky = SKY[d.dominant_sky] || { icon: "" };
+  card.innerHTML = `
+    <span class="wm-icon" id="wm-icon" aria-hidden="true">${sky.icon}</span>
+    <div class="wm-stat"><span class="kpi-label"><span id="wm-sky-label">Sky</span>${infoTip(SKY_TIP)}</span>
+      <strong id="wm-sky">${escapeHTML(d.dominant_sky || "–")} · ${fmt.number(d.sunshine_score)}/100</strong></div>
+    <div class="wm-stat"><span class="kpi-label" id="wm-temp-label">Hottest panel</span>
+      <strong id="wm-temp">${fmt.number(d.max_module_c)} °C</strong></div>
+    <div class="wm-stat"><span class="kpi-label">Weather cost (natural)</span><strong>${fmt.kwh(weather.natural_loss_kwh)}</strong></div>
+    <div class="wm-stat"><span class="kpi-label">Faults cost (fixable)</span><strong>${fmt.kwh(weather.fixable_loss_kwh)}</strong></div>
+    <a class="wm-link" href="weather.html">Weather & Energy →</a>`;
+}
+
+function renderDayChart(overview, series, weather = null) {
   const points = series.points;
+  // Sky band above the chart: from the replay ticks themselves, or matched by time from /api/weather/day.
+  const skyAt = weather ? Object.fromEntries(weather.points.map((p) => [p.timestamp, p.sky_label])) : {};
+  const skyLabels = points.map((p) => (p.sky_label !== undefined ? p.sky_label : skyAt[p.timestamp] || null));
+  const hasSky = skyLabels.some(Boolean);
   const pr = overview.performance_ratio;
   document.getElementById("day-chart-title").textContent = pr === null
     ? "Actual vs expected output"
@@ -99,7 +123,8 @@ function renderDayChart(overview, series) {
           backgroundColor: "transparent", borderWidth: 1.5, pointRadius: 0, tension: 0.25, yAxisID: "sun", fill: false },
       ],
     },
-    options: {
+    plugins: hasSky ? [Charts.skyStrip(skyLabels)] : [],
+    options: (hasSky ? Charts.skyStripOptions : (o) => o)({
       interaction: { mode: "index", intersect: false },
       scales: {
         x: Charts.axis("Time of day", { ticks: { maxTicksLimit: 12 } }),
@@ -114,12 +139,13 @@ function renderDayChart(overview, series) {
               : `${ctx.dataset.label.replace(" (kW)", "")}: ${fmt.number(ctx.parsed.y)} kW`,
             afterBody: (items) => {
               const missing = points[items[0].dataIndex].missing_inverters;
-              return missing ? `${missing} inverter(s) not reporting` : "";
+              const sky = skyLabels[items[0].dataIndex];
+              return [sky ? `Sky: ${sky}` : "", missing ? `${missing} inverter(s) not reporting` : ""].filter(Boolean);
             },
           },
         },
       },
-    },
+    }),
   });
 }
 

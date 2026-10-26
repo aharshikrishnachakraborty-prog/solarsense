@@ -85,3 +85,24 @@ a **replay** on stage — it is real recorded data, not a live feed.
 
 **If a judge asks "is this a mock-up?":** "No — change the plant or date and every number reloads from the
 engine. If you stop the engine, the site says so."
+
+---
+
+## Everyone — the weather part (WEATHER_PROMPTS.md, W1–W6)
+
+**Reading the sky without a cloud sensor (P2):** for each time of day, the brightest sunlight seen over the 34 days
+= "clear sky". Actual ÷ clear sky = **clear-sky index**: ~1 clear, ~0.5 cloudy, < 0.3 overcast. Sunlight that
+jumps up and down = passing clouds.
+
+**Heat (P2):** panels are rated at 25 °C. Hotter panels make less power — we measured about **0.4% less per °C**
+(Plant 1). At 60 °C that is 35 × 0.39 ≈ 14% less than a cool panel in the same sun.
+
+**The waterfall (P2):** clear-sky potential − clouds − heat − faults − not measured − other = actual. The parts
+always add up (a test checks it). Clouds and heat are **natural**; faults are **fixable** — that is the pitch.
+
+**Weather-aware alerts (P3):** every alert shows the sky, panel temperature and a confidence level. We tested a
+stricter rule for cloudy skies; it lost real faults, so we switched it off and said so.
+
+**The page (P4):** Weather & Energy — sky band, sunlight vs clear-sky chart, temperature chart, waterfall,
+calendar of all days, and "every +1 °C costs ~X% power".
+

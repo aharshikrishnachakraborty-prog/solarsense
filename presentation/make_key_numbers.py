@@ -33,6 +33,56 @@ def row(what, value, source):
     return f"| {what} | **{value}** | `{source}` |"
 
 
+def weather_rows(m):
+    """Weather intelligence (Phases W1–W4): sky days, temperature effect, waterfall, weather-aware test."""
+    if "breakdown" not in m:
+        return ["", "## Weather intelligence", "", "_Not built yet — run `python run_all.py`._"]
+    weather, temp, breakdown, check = m["weather"], m["temperature"], m["breakdown"], m.get("validation_weather")
+    lines = ["", "## Weather intelligence (natural vs fixable losses)", "",
+             "| What we say | Number | Source |", "|---|---|---|"]
+    for plant in config.PLANTS:
+        key = f"plant_{plant}"
+        sky, heat, parts = weather["by_plant"][key], temp["by_plant"][key], breakdown["by_plant"][key]
+        days = sky["days_by_dominant_sky"]
+        lines += [
+            row(f"Plant {plant}: clear / partly cloudy / cloudy / overcast days",
+                " / ".join(str(days[label]) for label in config.SKY_LABELS), M + " → weather"),
+            row(f"Plant {plant}: midday clear-sky index on its 3 sunniest days (≈ 1 = method works)",
+                sky["sanity"]["midday_median_csi_3_sunniest_days"], M + " → weather"),
+            row(f"Plant {plant}: power lost per +1 °C of panel temperature (95% range)",
+                f"{heat['coefficient_pct_per_c']} %/°C ({heat['ci95_pct_per_c'][0]} to {heat['ci95_pct_per_c'][1]})",
+                M + " → temperature"),
+            row(f"Plant {plant}: hottest panel", f"{heat['hottest_day']['max_module_c']} °C on {heat['hottest_day']['date']}",
+                M + " → temperature"),
+            row(f"Plant {plant}: energy lost to clouds / heat / faults (% of clear-sky potential)",
+                " / ".join(f"{indian(parts[p])} kWh ({parts['pct_of_potential'][n]}%)" for p, n in
+                           [("cloud_loss_kwh", "clouds"), ("heat_loss_kwh", "heat"), ("fault_loss_kwh", "faults")]),
+                M + " → breakdown"),
+            row(f"Plant {plant}: biggest fault day (waterfall)", parts["biggest_fault_loss_day"]["summary"], M + " → breakdown"),
+            row(f"Plant {plant}: cloudiest day (waterfall)", parts["biggest_cloud_loss_day"]["summary"], M + " → breakdown"),
+        ]
+    total = breakdown["total"]
+    lines += [
+        row("Both plants: natural losses (clouds + heat) vs fixable (faults)",
+            f"{indian(total['natural_loss_kwh'])} kWh vs {indian(total['fixable_loss_kwh'])} kWh", M + " → breakdown → total"),
+        row("Both plants: actual energy as % of clear-sky potential", f"{total['pct_of_potential']['actual']}%",
+            M + " → breakdown → total"),
+        row("Typical silicon temperature coefficient (datasheets, for comparison)",
+            f"{temp['typical_range_pct_per_c'][0]} to {temp['typical_range_pct_per_c'][1]} %/°C", M + " → temperature")]
+    if check:
+        by = {(r["setting"], r["version"]): r for r in check["results"]}
+        lines += [
+            row("Weather-aware rule: false alarms before → after (clean test days)",
+                f"{check['false_alarms_before']} → {check['false_alarms_after']}", M + " → validation_weather"),
+            row("… real (planted) faults it would have lost", check["injected_faults_lost"], M + " → validation_weather"),
+            row("… so the rule is", "OFF (kept honest: we do not trade real faults for fewer alarms)"
+                if not check["rule_enabled_in_config"] else "ON", "engine/config.py → WEATHER_AWARE_UNDER"),
+            row("Trips planted on cloudy days: caught",
+                f"{by[('default', 'before')]['trip_cloudy_day_caught']} of {by[('default', 'before')]['trip_cloudy_day_injected']}",
+                M + " → validation_weather")]
+    return lines
+
+
 def main():
     """Collect the numbers and write the markdown file."""
     m = load_metrics()
@@ -121,6 +171,8 @@ def main():
     sensitive = next(t for t in validation["threshold_tradeoff"] if t["setting"] == "sensitive" and t["fault"] == "underperformance")
     lines.append(row("Most sensitive setting: caught / false alarms",
                      f"{sensitive['recall_pct']}% / {sensitive['false_alarms_on_clean_days']}", M + " → validation"))
+
+    lines += weather_rows(m)
 
     lines += ["", "## External facts to cite (NOT from our data — find a source before using)", "",
               "Do **not** say any of these on stage without a cited source (title, organisation, year, link):", "",

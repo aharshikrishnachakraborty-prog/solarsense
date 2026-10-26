@@ -44,6 +44,9 @@ def replay(plant: int = 1, date: Optional[str] = None):
     actual_kw = present.groupby("timestamp")["ac_kw"].sum().reindex(ticks, fill_value=0)
     expected_kw = present.groupby("timestamp")["expected_kw"].sum().reindex(ticks, fill_value=0)
     irradiation = rows.groupby("timestamp")["irradiation"].first().reindex(ticks)
+    # Phase W6: the sky and panel temperature at each tick (blank if the weather steps have not been run).
+    weather = store.weather_15min[(store.weather_15min["plant"] == plant) & (store.weather_15min["date"] == date)]
+    weather = weather.set_index("timestamp").reindex(ticks)
 
     alerts = store.alerts_on_date(plant, date)
     alerts = alerts[~store.is_notice(alerts)]   # data-quality notices are not counted as alerts to act on
@@ -65,6 +68,8 @@ def replay(plant: int = 1, date: Optional[str] = None):
             "fault_loss_inr": round(float(cum_loss.iloc[i] * config.TARIFF_INR_PER_KWH), 0),
             "at_risk_inr": round(float(cum_risk.iloc[i] * config.TARIFF_INR_PER_KWH), 0),
             "active_alerts_by_severity": {lvl: int((started["severity"] == lvl).sum()) for lvl in config.SEVERITY_LEVELS},
+            "sky_label": None if pd.isna(weather["sky_label"].iloc[i]) else weather["sky_label"].iloc[i],
+            "module_temp_c": None if pd.isna(weather["module_temp"].iloc[i]) else round(float(weather["module_temp"].iloc[i]), 1),
         })
 
     # A toast pops up at the first tick at or after an alert starts (alerts that began earlier are skipped).

@@ -39,6 +39,21 @@ class DataStore:
         self.dates = sorted(self.daily_plant["date"].unique())
         self.plants = sorted(int(p) for p in self.daily_plant["plant"].unique())
         self.inverter_plant = dict(self.daily_inverter[["inverter", "plant"]].drop_duplicates().values)
+        self.load_weather()
+
+    def load_weather(self):
+        """Weather & energy files (Phases W1–W3). Optional: without them the rest of the site still works."""
+        files = [config.WEATHER_15MIN_FILE, config.WEATHER_DAILY_FILE, config.ENERGY_BREAKDOWN_FILE,
+                 config.TEMPERATURE_POINTS_FILE]
+        self.weather_ready = all(path.exists() for path in files) and "breakdown" in self.metrics
+        if not self.weather_ready:
+            self.weather_15min = pd.DataFrame(columns=["plant", "timestamp", "date", "sky_label", "module_temp"])
+            return
+        self.weather_15min = pd.read_parquet(config.WEATHER_15MIN_FILE)
+        self.weather_15min["date"] = self.weather_15min["date"].astype(str)   # same text dates as everywhere else
+        self.weather_daily = pd.read_parquet(config.WEATHER_DAILY_FILE)
+        self.breakdown = pd.read_parquet(config.ENERGY_BREAKDOWN_FILE)
+        self.temperature_points = pd.read_parquet(config.TEMPERATURE_POINTS_FILE)
 
     # --- checking inputs --------------------------------------------------------
     def check_plant(self, plant):

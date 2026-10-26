@@ -70,11 +70,12 @@ def export(out):
         for alert in everything["alerts"]:
             ex.save(f"alerts/{alert['id']}")                           # "Why?" panel
         for plant in [p["plant"] for p in info["plants"]]:
-            for name in ["losses", "plant/daily", "plant/heatmap"]:
+            for name in ["losses", "plant/daily", "plant/heatmap", "weather/calendar", "weather/temperature",
+                         "breakdown"]:
                 ex.save(name, {"plant": plant})
             inverters = client.get("/api/plant/heatmap", params={"plant": plant}).json()["inverters"]
             for date in info["dates"]:
-                for name in ["overview", "plant/timeseries", "replay"]:
+                for name in ["overview", "plant/timeseries", "replay", "weather/day"]:
                     ex.save(name, {"plant": plant, "date": date})
                 ex.save("alerts", {"plant": plant, "date": date, "status": "Active", "sort": "severity",
                                    "limit": 5, "include_notices": "false"})   # Overview "Needs attention"

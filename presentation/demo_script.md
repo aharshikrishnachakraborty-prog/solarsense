@@ -21,6 +21,17 @@
 
 After the demo: **Re-open** the acknowledged alert (Alerts → P2-TRIP-0126 → Re-open) so the next run starts clean.
 
+## 30-second demo: Weather & Energy page
+
+Open **Weather & Energy**, choose **Plant 2**, then click the **15 May** tile in the weather calendar.
+
+| Time | Click | Say |
+|---|---|---|
+| 0:00 | 15 May tile (☀️ 96) | "15 May was a clear day — sunshine score 96, the sky band is almost all yellow. But look: at midday the blue power line goes flat, far below what the sun allowed." |
+| 0:10 | Point at the waterfall | "Clouds cost only 11,366 kWh and heat 16,104 kWh — natural, nobody can fix that. Faults cost **38,049 kWh** — the red bar. The sky was clear, so it is NOT the weather: send a technician." |
+| 0:20 | Click the **11 Jun** tile (☁️ 38) | "Now a cloudy day: clouds cost 1,42,478 kWh, faults zero. A big loss — but nothing to fix. SolarSense tells the operator which losses to chase." |
+| 0:30 | — | Done. (Backup: `figures/7_weather_energy_waterfall.png`.) |
+
 ## Backup plan
 
 | Problem | Do this |

@@ -69,9 +69,13 @@ const Replay = {
     const { ticks, tariff_inr_per_kwh, tariff_note } = Replay.data;
     const t = ticks[i];
     renderKpis({ ...t, tariff_inr_per_kwh, tariff_note });
+    const sky = t.sky_label && SKY[t.sky_label] ? `${SKY[t.sky_label].icon} ${t.sky_label.toLowerCase()}` : "";
+    const panel = t.module_temp_c === null || t.module_temp_c === undefined ? "" : `panels ${fmt.number(t.module_temp_c)} °C`;
+    const weatherNow = [sky, panel].filter(Boolean).join(", ");
     document.getElementById("takeaway").innerHTML =
-      `<span class="live-dot"></span>Live replay · ${fmt.time(t.timestamp)} — plant has made ${fmt.pct(t.performance_ratio)} ` +
-      `of expected so far; ${fmt.kwh(t.fault_loss_kwh)} lost to faults so far.`;
+      `<span class="live-dot"></span>Live replay · ${fmt.time(t.timestamp)}${weatherNow ? ` · ${weatherNow}` : ""} — plant ` +
+      `has made ${fmt.pct(t.performance_ratio)} of expected so far; ${fmt.kwh(t.fault_loss_kwh)} lost to faults so far.`;
+    Replay.showWeather(t);
     const chart = Charts.instances["day-chart"];
     const upTo = (key) => ticks.map((p, j) => (j <= i ? p[key] : null));
     chart.data.datasets[0].data = upTo("actual_kw");
@@ -79,6 +83,17 @@ const Replay = {
     chart.data.datasets[2].data = upTo("irradiation");
     chart.update("none");
     document.getElementById("day-chart-title").textContent = `Live: ${fmt.time(t.timestamp)} — ${fmt.number(t.actual_kw)} kW now (expected ${fmt.number(t.expected_kw)} kW)`;
+  },
+
+  /** Weather mini-card during replay: the sky icon and panel temperature change every tick. */
+  showWeather(t) {
+    const icon = document.getElementById("wm-icon");
+    if (!icon) return;   // no weather data for this plant/day
+    icon.textContent = t.sky_label && SKY[t.sky_label] ? SKY[t.sky_label].icon : "🌙";
+    document.getElementById("wm-sky-label").textContent = "Sky now";
+    document.getElementById("wm-sky").textContent = t.sky_label || "too dark to judge";
+    document.getElementById("wm-temp-label").textContent = "Panel temperature now";
+    document.getElementById("wm-temp").textContent = t.module_temp_c === null ? "–" : `${fmt.number(t.module_temp_c)} °C`;
   },
 
   toast(event) {

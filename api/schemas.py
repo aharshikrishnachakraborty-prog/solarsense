@@ -86,6 +86,11 @@ class AlertSummary(BaseModel):
     recommended_action: str
     status: str
     status_updated_at: Optional[str] = None
+    confidence: Optional[str] = Field(None, description="High / Medium / Low, from the sky and peer evidence (W4).")
+    sky_condition: Optional[str] = Field(None, description="Most common sky label during the alert (W1).")
+    avg_csi: Optional[float] = Field(None, description="Average clear-sky index during the alert (1 = clear).")
+    module_temp_c: Optional[float] = Field(None, description="Average panel temperature during the alert, °C.")
+    weather_note: Optional[str] = Field(None, description="One sentence on the weather during the alert.")
 
 
 class AlertsResponse(BaseModel):
@@ -128,6 +133,63 @@ class LossesResponse(BaseModel):
     top_inverters: list[dict[str, Any]]
     daily_trend: list[dict[str, Any]]
     projection_note: str
+    tariff_note: str
+
+
+class WeatherDayResponse(BaseModel):
+    plant: int
+    date: str
+    takeaway: str
+    day: dict[str, Any] = Field(description="Sky + temperature summary of the day (sentences, scores, heat loss).")
+    sky_share_pct: dict[str, float]
+    points: list[dict[str, Any]] = Field(description="Every 15 minutes while a clear sky gives sunlight.")
+    waterfall: list[dict[str, Any]]
+    natural_loss_kwh: float = Field(description="Clouds + heat (nobody can fix them).")
+    fixable_loss_kwh: float = Field(description="Confirmed fault losses (this is where money is saved).")
+    hot_module_temp_c: float
+    note: str
+
+
+class WeatherCalendarResponse(BaseModel):
+    plant: int
+    days: list[dict[str, Any]]
+    days_by_sky: dict[str, int]
+    sky_labels: list[str]
+
+
+class WeatherTemperatureResponse(BaseModel):
+    plant: int
+    coefficient_pct_per_c: float = Field(description="Measured: % of power lost per +1 °C of panel temperature.")
+    ci95_pct_per_c: list[float]
+    rows: int
+    days: int
+    fit_line: dict[str, float]
+    binned: list[dict[str, float]]
+    verdict: str
+    by_sunlight_band_pct_per_c: dict[str, float]
+    coefficient_used_pct_per_c: float
+    coefficient_source: str
+    panel_heating: dict[str, float]
+    heat_loss_kwh_total: float
+    heat_loss_inr_total: float
+    heat_loss_pct_of_25c_energy: float
+    hot_hours_total: float
+    points: list[dict[str, Any]]
+    typical_range_pct_per_c: list[float]
+    reference_panel_temp_c: float
+
+
+class BreakdownResponse(BaseModel):
+    plant: Optional[int]
+    date: Optional[str]
+    label: str
+    steps: list[dict[str, Any]] = Field(description="Clear-sky potential → − clouds → − heat → − faults → "
+                                                    "− not measured → − other = actual (kWh, kind, % of potential).")
+    natural_loss_kwh: float
+    fixable_loss_kwh: float
+    fixable_loss_inr: float
+    summary: Optional[str]
+    method: str
     tariff_note: str
 
 

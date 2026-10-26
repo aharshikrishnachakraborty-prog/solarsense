@@ -59,7 +59,7 @@ const AlertPanel = {
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <div class="list-title">${severityBadge(a.severity)} ${fmt.fault(a.fault_type)}</div>
+          <div class="list-title">${severityBadge(a.severity)} ${fmt.fault(a.fault_type)} ${confidenceBadge(a.confidence)}</div>
           <div class="muted">${escapeHTML(a.id)} · ${where}</div>
           <div class="muted">${when}</div>
         </div>
@@ -67,6 +67,9 @@ const AlertPanel = {
       </div>
       <h2>Why?</h2>
       <p>${escapeHTML(a.reason)}</p>
+      ${a.weather_note ? `<div class="weather-note"><strong>Weather:</strong> ${a.sky_condition ? skyChip(a.sky_condition) : ""}
+        ${a.module_temp_c === null || a.module_temp_c === undefined ? "" : ` · panels ${fmt.number(a.module_temp_c)} °C`}
+        <div>${escapeHTML(a.weather_note)}</div></div>` : ""}
       ${a.series_kind === "none" ? `<p class="muted">This is a plant-wide data issue — there is no power curve to show.</p>`
         : `<div class="chart-box small"><canvas id="evidence-chart" aria-label="Evidence chart"></canvas></div>`}
       <div class="facts">${lossFacts}${facts.join("")}</div>

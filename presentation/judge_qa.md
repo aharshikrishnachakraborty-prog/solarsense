@@ -1,4 +1,4 @@
-# 20 tough judge questions — honest answers
+# 25 tough judge questions — honest answers
 
 Numbers come from `key_numbers.md` (sources listed there). If you don't know an answer on stage, say
 "we didn't measure that" — never guess.
@@ -95,3 +95,41 @@ noise. Our planted-soiling test shows the rule works for faster declines (80% ca
 **20. What are your biggest limitations?**
 34 days in one season; one weather sensor per plant; no labelled faults; an assumed tariff; small dips under
 20% usually missed by design; overheating can only be judged plant-wide. All are listed on the About page.
+
+---
+
+## Weather intelligence (Phases W1–W6)
+
+**21. Your data has no cloud sensor — how do you know it's cloudy?**
+We read it from the sunlight. For every 15-minute time of day we take a high percentile (95th) of the sunlight
+over all 34 days — "what a clear sky gives at this time". Clear-sky index = actual ÷ that. Around 1 = clear,
+below 0.3 = overcast, and fast flickering = passing clouds. Checks: on each plant's 3 sunniest days the midday
+index is 0.94 (Plant 1) and 0.97 (Plant 2), and only 5–6% of readings flicker for one reading vs 18.5% if the
+labels were random. It is an estimate, labelled ASSUMPTION everywhere.
+
+**22. How accurate is your clear-sky reference with only 34 days and no GPS?**
+Good enough to tell clear from cloudy, not a lab measurement. It works because at every time of day at least a
+couple of the 34 days were clear. If some hour had been cloudy on almost every day, the curve would be too low
+there and we would under-count clouds. With the plant's GPS location we would use a physical sun-position model
+instead — that is on our roadmap.
+
+**23. Is your temperature coefficient realistic?**
+For Plant 1, yes: −0.39% per °C (95% range −0.45 to −0.33), inside the typical silicon range (−0.3 to −0.5), and
+two other estimates agree (our physics model −0.41, a fit on alert-free readings −0.41). For Plant 2 the fit says
+−0.30, but we say openly that it is weak evidence: sunlight and heat rise together, and inside narrow sunlight
+bands the slope even flips. There is also only one panel-temperature sensor per plant.
+
+**24. Couldn't a fault be hidden by a cloudy day?**
+That is why we compare each inverter with its neighbours: a cloud dims all of them, a fault only one. We tested
+it by planting faults on cloudy days: trips were caught 65 of 65 times; underperformance 45 of 65 (69%) — about
+the same as on any day (68 of 95, 72%). We also tried a stricter rule for cloudy skies: it cut false alarms from
+59 to 35 but lost 13 real planted faults, so we did NOT keep it. Instead every alert shows the sky and a
+confidence level (High / Medium / Low).
+
+**25. Why does weather matter to an operator if they can't control it?**
+So they don't chase clouds. Our waterfall splits lost energy into natural (clouds + heat: 52,59,927 kWh over 34
+days, both plants) and fixable (faults: 9,27,680 kWh). Only the red bar needs a technician. It also rules out
+excuses: on 15 May, Plant 2's sky was clear (sunshine score 96), yet faults cost 38,049 kWh — so "it was cloudy"
+is not the answer. And knowing heat costs ~6% of the clear-sky potential helps when planning ventilation or
+cleaning schedules.
+

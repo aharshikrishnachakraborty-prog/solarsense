@@ -15,6 +15,26 @@ const FAULT_NAMES = {
 
 const SEVERITIES = ["Critical", "High", "Medium", "Low"];
 
+// Sky labels read from the sunlight (Phase W1): icon + colour, the same on every page and chart.
+const SKY = {
+  Clear: { icon: "☀️", color: "#f5b700" },
+  "Partly cloudy": { icon: "⛅", color: "#9cc3e6" },
+  Cloudy: { icon: "☁️", color: "#7a8794" },
+  Overcast: { icon: "🌫️", color: "#3e444c" },
+};
+const SKY_TIP = "ASSUMPTION: there is no cloud sensor. We compare sunlight with a clear-sky curve learned from "
+  + "the brightest days at each time of day (no GPS in the data), so the sky label is an estimate.";
+
+/** "☀️ Clear" (or "–" if there was no weather reading). */
+function skyChip(label) {
+  return label && SKY[label] ? `<span class="sky-chip">${SKY[label].icon} ${escapeHTML(label)}</span>` : "–";
+}
+
+/** A confidence badge (High / Medium / Low), shown next to alerts since Phase W4. */
+function confidenceBadge(level) {
+  return level ? `<span class="conf conf-${escapeHTML(level)}">${escapeHTML(level)} confidence</span>` : "";
+}
+
 // Wording used everywhere for actual ÷ expected energy, and for the tariff.
 const AVE_LABEL = "Actual vs expected";
 const AVE_TIP = "Above 100% means the plant produced more than our model estimated.";

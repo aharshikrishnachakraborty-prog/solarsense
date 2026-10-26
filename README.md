@@ -20,7 +20,7 @@ money (₹) lost — shown on a web dashboard that operators can act on.
 6. **Download the data:** on Kaggle (free account) open **"Solar Power Generation Data" by anikannal**,
    click *Download*, unzip, and put the **4 CSV files** in `data/raw/`
    (`Plant_1_Generation_Data.csv`, `Plant_1_Weather_Sensor_Data.csv`, `Plant_2_Generation_Data.csv`, `Plant_2_Weather_Sensor_Data.csv`).
-7. **Build everything:** `python run_all.py` (about 2 minutes; add `--skip-validation` for a quick ~20 s rebuild).
+7. **Build everything:** `python run_all.py` (about 3 minutes; add `--skip-validation` for a quick ~15 s rebuild).
 8. **Check it works:** `pytest` — every test should pass.
 9. **Start the website:** `uvicorn api.main:app --reload`
 10. **Open** http://localhost:8000 in your browser (needs internet the first time, for the chart library).
@@ -36,6 +36,7 @@ money (₹) lost — shown on a web dashboard that operators can act on.
 |---|---|
 | **Overview** | Day summary, KPI tiles, actual vs expected chart, alerts needing attention, **▶ Live replay** of the day |
 | **Plant** | All days: daily actual vs expected, inverter × day health map, worst inverters |
+| **Weather & Energy** | The sky read from sunlight (☀️ ⛅ ☁️ 🌫️), panel heat, the energy waterfall (natural vs fixable losses), calendar of all days |
 | **Inverters** | One inverter: actual vs expected vs neighbours, alert periods shaded, daily trend, its alerts |
 | **Alerts** | Filter/search/sort all alerts, "Why?" panel with evidence chart, Acknowledge / Resolve, CSV export |
 | **Validation** | Proof the detector works: faults we planted on purpose, what it catches and misses |
@@ -51,13 +52,17 @@ Also try **http://localhost:8000/docs** to call the API directly.
 3. **Fault rules** compare actual vs expected and vs neighbouring inverters: inverter trip, underperformance,
    data gap, slow degradation, overheating, sensor/data issues — each with a reason and recommended action.
 4. **Losses:** energy lost × an assumed tariff = ₹ lost.
-5. **Validation:** we plant faults in healthy data and check the detector finds them (no official labels exist).
-6. The **API** serves the precomputed results; the **website** only displays them.
+5. **Weather intelligence:** the sky (clear → overcast) is read from the sunlight itself (no cloud sensor), the
+   power lost to hot panels is measured, and a waterfall splits each day's energy into natural losses (clouds,
+   heat) and fixable losses (faults). Every alert shows the sky and a confidence level.
+6. **Validation:** we plant faults in healthy data and check the detector finds them (no official labels exist),
+   also on cloudy days, and test whether a weather-aware rule helps (it lost real faults, so it is off).
+7. The **API** serves the precomputed results; the **website** only displays them.
 
 ## Project layout
 
 ```
-engine/   the AI pipeline (load, clean, model, detect, losses, validate) — settings in engine/config.py
+engine/   the AI pipeline (load, clean, model, weather, detect, losses, waterfall, validate) — settings in engine/config.py
 api/      FastAPI app: JSON endpoints + serves the website
 web/      the dashboard (HTML, CSS, JavaScript, Chart.js)
 reports/  metrics.json (every number shown), data_quality.md, model_card.md, assumptions.md, figures/

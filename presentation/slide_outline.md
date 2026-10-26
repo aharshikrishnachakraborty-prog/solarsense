@@ -1,4 +1,4 @@
-# Slide outline — SolarSense (10 slides, ~5 minutes + 2-minute demo)
+# Slide outline — SolarSense (11 slides, ~5½ minutes + 2-minute demo)
 
 Every number below is in `key_numbers.md` with its source. ₹ values: always say **"at an assumed tariff"**.
 Items marked **[CITE]** need an external source first (see "External facts to cite" in `key_numbers.md`) —
@@ -46,24 +46,39 @@ drop the line if the team cannot find one.
 - If nothing is fixed: **≈ 99,58,920 kWh per year** (≈ ₹2.99 crore at the assumed tariff) — clearly an **estimate**.
 - Data gaps are shown separately as **"at risk" (3,80,157 kWh)** — not counted as lost.
 
-## 8. Scalability
+## 8. Weather intelligence — natural vs fixable losses
+- We have **no cloud sensor**: we **read the sky from the sunlight itself** (a clear-sky curve learned from the
+  brightest days at each time of day). Plant 2: **10 clear, 20 partly cloudy, 3 cloudy, 1 overcast** days.
+- Hot panels make less power: we **measured −0.39% per °C** on Plant 1 (silicon datasheets: −0.3 to −0.5).
+- **Visual:** the energy waterfall on the **Weather & Energy** page (`figures/7_weather_energy_waterfall.png`):
+  clear-sky potential → − clouds → − heat → − **faults (red)** → − not measured → actual.
+- Both plants, 34 days: **52,59,927 kWh natural** (clouds + heat — nobody can fix them) vs
+  **9,27,680 kWh fixable** (faults — where money is saved).
+- Every alert now says what the sky was: *"Sky was clear (clear-sky index 0.98), so low output is NOT caused by clouds."*
+- **Honest:** a stricter "cloudy-sky" alert rule cut false alarms 59 → 35 but lost 13 real planted faults, so we kept it **off**.
+- *Say:* "We don't have a cloud camera — we read the sky from the sunlight itself, and we measure exactly how much
+  power clouds and heat cost each day. Operators only need to chase the red bar."
+
+## 9. Scalability
 - Works for **any plant, any number of inverters**: the model learns each plant from its own data.
 - One command rebuilds everything (`python run_all.py`, ~97 s for 44 inverters × 34 days on a laptop).
 - Next step: live 15-minute data stream instead of replay; optional NASA POWER site estimator for new sites (not built yet).
 - *Honest:* we have not benchmarked 1,000 inverters.
 
-## 9. Competitive advantage
+## 10. Competitive advantage
 | | Basic SCADA threshold alarm | Notebook analysis | **SolarSense** |
 |---|---|---|---|
 | Knows what output *should* be for the weather | ✗ | sometimes | **✓** |
 | Explains each alert in plain words | ✗ | ✗ | **✓** |
 | Loss in kWh and ₹ per alert | ✗ | rarely | **✓** |
 | Validated detection rate, incl. what it misses | ✗ | ✗ | **✓** |
+| Separates weather losses from fixable fault losses | ✗ | rarely | **✓** |
 | Operator workflow (acknowledge / resolve / export) | partly | ✗ | **✓** |
 
-## 10. Future roadmap
+## 11. Future roadmap
 - Live data feed + email/SMS alerts.
 - More seasons of data (we only have May–June) → better accuracy all year.
 - String-level data → pinpoint the exact panel string.
 - Sourced tariff and cost data; NASA POWER site estimator for new sites.
+- Plant GPS location → a physical clear-sky model instead of our data-learned curve.
 - *Close:* "SolarSense finds the losses in minutes, explains them, and puts a rupee value on them."

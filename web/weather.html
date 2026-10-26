@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarSense — Weather & Energy</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2710%27 fill=%27%23f59e0b%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="topbar"></header>
+
+  <main class="page">
+    <h1>Weather & Energy</h1>
+    <div id="takeaway" class="takeaway"><div class="skeleton" style="width: 70%"></div></div>
+
+    <!-- KPI tiles: the day's sky, heat, and what clouds / heat / faults cost -->
+    <section id="kpis" class="grid kpis" aria-label="This day's weather">
+      <div class="card"><div class="skeleton"></div></div><div class="card"><div class="skeleton"></div></div>
+      <div class="card"><div class="skeleton"></div></div><div class="card"><div class="skeleton"></div></div>
+      <div class="card"><div class="skeleton"></div></div>
+    </section>
+
+    <section class="grid grid-main">
+      <div class="card">
+        <h2 id="sky-title">Sunlight vs a clear sky</h2>
+        <p class="card-sub">The coloured band shows the sky every 15 minutes. Grey shading = sunlight blocked by clouds
+          (gap between the clear-sky curve and real sunlight) <span id="sky-tip"></span></p>
+        <div class="chart-box tall"><canvas id="sky-chart" aria-label="Sunlight vs clear sky and power chart"></canvas></div>
+        <div id="sky-legend" class="legend sky-legend"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2 id="waterfall-title">Where did the energy go?</h2>
+          <div class="toggle" role="group" aria-label="Waterfall period">
+            <button id="wf-day" aria-pressed="true">This day</button>
+            <button id="wf-period" aria-pressed="false">Whole period</button>
+          </div>
+        </div>
+        <p class="card-sub">From what a clear sky could give (panels at 25 °C) down to the energy actually made.
+          <span class="nat">Grey/blue = natural</span> (nobody can fix clouds or heat), <span class="fix">red = fixable</span> faults.</p>
+        <div class="chart-box"><canvas id="waterfall-chart" aria-label="Energy waterfall chart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="grid grid-main">
+      <div class="card">
+        <h2 id="temp-title">Air and panel temperature</h2>
+        <p class="card-sub">Panels get much hotter than the air in the sun. Shaded = hot hours (panel at or above
+          <span id="hot-threshold">50</span> °C).</p>
+        <div class="chart-box small"><canvas id="temp-chart" aria-label="Air and panel temperature chart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2 id="scatter-title">Hotter panels make less power</h2>
+        <p class="card-sub">Healthy readings in good sunlight: efficiency (power ÷ sunlight) against panel temperature,
+          with a straight-line fit <span id="scatter-tip"></span></p>
+        <div class="chart-box small"><canvas id="scatter-chart" aria-label="Panel temperature vs efficiency chart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: var(--gap)">
+      <h2 id="calendar-title">Weather calendar</h2>
+      <p class="card-sub">Every day of this plant. Click a day to open it. Score = sunshine score (100 = as much sunlight as a clear day).</p>
+      <div id="calendar" class="calendar"><div class="skeleton" style="height: 120px"></div></div>
+    </section>
+
+    <p class="footer-note" id="method-note">The sky is read from the sunlight itself — the data has no cloud sensor and no GPS location.</p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/mode.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/weather.js"></script>
+</body>
+</html>

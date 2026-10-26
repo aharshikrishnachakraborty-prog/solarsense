@@ -261,6 +261,22 @@
       "unit": "days scaled from the observed period",
       "why": "Estimate: 34-day loss scaled to 365 days, assuming the rest of the year behaves like May\u2013June and nothing is fixed. Real yearly sunlight and fault patterns will differ.",
       "source": "Simple extrapolation (engine/losses.py)"
+    },
+    {
+      "key": "clear_sky_reference",
+      "title": "Clear-sky sunlight learned from our own data",
+      "value": "95th",
+      "unit": "percentile per 15-min time of day",
+      "why": "No cloud sensor and no plant GPS location, so we cannot use a physical sun model. For each time of day we take the 95th percentile of sunlight over all 34 days (smoothed over 5 readings) as 'what a clear sky gives'. If a time of day was cloudy on almost every day, the reference there would be too low.",
+      "source": "Computed from the data (engine/weather.py)"
+    },
+    {
+      "key": "heat_loss_coefficient",
+      "title": "Heat loss = power a 25 \u00b0C panel would make \u2212 expected power",
+      "value": "-0.392 / -0.304",
+      "unit": "%/\u00b0C (Plant 1 / Plant 2, measured)",
+      "why": "Panels are rated at 25 \u00b0C. Each plant's temperature coefficient is measured from healthy, sunny rows (efficiency vs panel temperature, straight-line fit). Hot panels and strong sun happen together, so the coefficient is an estimate. If a fit is ever outside the believable range [-0.8, -0.15] %/\u00b0C, the typical -0.4 %/\u00b0C is used.",
+      "source": "Computed from the data (engine/weather_temperature.py); typical range from silicon panel datasheets"
     }
   ],
   "expected_model": {
@@ -419,6 +435,10 @@
       "Medium": 79,
       "Low": 6
     },
+    "by_confidence": {
+      "High": 295,
+      "Medium": 134
+    },
     "by_plant_and_type": {
       "plant_1": {
         "INVERTER_TRIP": 11,
@@ -435,7 +455,8 @@
     "inverters_with_alerts": {
       "plant_1": 11,
       "plant_2": 22
-    }
+    },
+    "weather_aware_underperformance": false
   },
   "anomaly_score": {
     "inverter_days": 1496,
@@ -811,5 +832,578 @@
       "true_kwh": 722.6,
       "estimated_kwh": 747.4
     }
+  },
+  "weather": {
+    "method": {
+      "clear_sky_percentile": 95,
+      "clear_sky_smooth_slots": 5,
+      "csi_thresholds": {
+        "clear_min": 0.8,
+        "partly_min": 0.5,
+        "cloudy_min": 0.3
+      },
+      "variability_clear_max": 0.1,
+      "note": "Clear-sky reference is learned from the 34 days (ASSUMPTION), not a physical model."
+    },
+    "by_plant": {
+      "plant_1": {
+        "days": 34,
+        "days_by_dominant_sky": {
+          "Clear": 2,
+          "Partly cloudy": 31,
+          "Cloudy": 1,
+          "Overcast": 0
+        },
+        "avg_sunshine_score": 71.3,
+        "sunniest_day": {
+          "date": "2020-05-25",
+          "sunshine_score": 89.4,
+          "avg_csi": 0.821,
+          "dominant_sky": "Clear",
+          "summary": "Clear most of the day, passing clouds after 3:15 PM \u2014 11% less sunlight than a clear day."
+        },
+        "cloudiest_day": {
+          "date": "2020-05-18",
+          "sunshine_score": 49.9,
+          "avg_csi": 0.498,
+          "dominant_sky": "Partly cloudy",
+          "summary": "Overcast morning, partly cloudy afternoon \u2014 50% less sunlight than a clear day."
+        },
+        "sanity": {
+          "avg_csi_3_sunniest_days": 0.827,
+          "midday_median_csi_3_sunniest_days": 0.937,
+          "sunniest_days": [
+            "2020-05-25",
+            "2020-05-23",
+            "2020-05-28"
+          ],
+          "single_reading_blips_pct": 5.3,
+          "single_reading_blips_pct_if_random": 18.5,
+          "low_coverage_days": [
+            "2020-05-20"
+          ]
+        }
+      },
+      "plant_2": {
+        "days": 34,
+        "days_by_dominant_sky": {
+          "Clear": 10,
+          "Partly cloudy": 20,
+          "Cloudy": 3,
+          "Overcast": 1
+        },
+        "avg_sunshine_score": 74.7,
+        "sunniest_day": {
+          "date": "2020-05-15",
+          "sunshine_score": 95.9,
+          "avg_csi": 0.923,
+          "dominant_sky": "Clear",
+          "summary": "Clear most of the day, passing clouds after 3:15 PM \u2014 about as much sunlight as a clear day."
+        },
+        "cloudiest_day": {
+          "date": "2020-06-11",
+          "sunshine_score": 37.6,
+          "avg_csi": 0.355,
+          "dominant_sky": "Cloudy",
+          "summary": "Cloudy most of the day \u2014 62% less sunlight than a clear day."
+        },
+        "sanity": {
+          "avg_csi_3_sunniest_days": 0.925,
+          "midday_median_csi_3_sunniest_days": 0.973,
+          "sunniest_days": [
+            "2020-05-15",
+            "2020-05-22",
+            "2020-05-23"
+          ],
+          "single_reading_blips_pct": 6.2,
+          "single_reading_blips_pct_if_random": 18.5,
+          "low_coverage_days": []
+        }
+      }
+    }
+  },
+  "temperature": {
+    "reference_panel_temp_c": 25.0,
+    "typical_range_pct_per_c": [
+      -0.5,
+      -0.3
+    ],
+    "hot_module_temp_c": 50.0,
+    "tariff_inr_per_kwh": 3.0,
+    "healthy_rows_rule": "real reading, sunlight \u2265 0.3 kW/m\u00b2, not an obvious outage, within \u00b110% of neighbouring inverters",
+    "by_plant": {
+      "plant_1": {
+        "coefficient_pct_per_c": -0.392,
+        "ci95_pct_per_c": [
+          -0.445,
+          -0.333
+        ],
+        "rows": 20977,
+        "days": 34,
+        "fit_line": {
+          "efficiency_at_25c_pct": 109.04,
+          "slope_pct_points_per_c": -0.4272,
+          "temp_min_c": 27.1,
+          "temp_max_c": 65.5
+        },
+        "binned": [
+          {
+            "temp_c": 29.0,
+            "efficiency_pct": 96.51,
+            "readings": 87
+          },
+          {
+            "temp_c": 31.0,
+            "efficiency_pct": 103.23,
+            "readings": 218
+          },
+          {
+            "temp_c": 33.0,
+            "efficiency_pct": 98.8,
+            "readings": 511
+          },
+          {
+            "temp_c": 35.0,
+            "efficiency_pct": 104.61,
+            "readings": 881
+          },
+          {
+            "temp_c": 37.0,
+            "efficiency_pct": 104.9,
+            "readings": 1284
+          },
+          {
+            "temp_c": 39.0,
+            "efficiency_pct": 103.45,
+            "readings": 1469
+          },
+          {
+            "temp_c": 41.0,
+            "efficiency_pct": 102.52,
+            "readings": 1680
+          },
+          {
+            "temp_c": 43.0,
+            "efficiency_pct": 102.3,
+            "readings": 2322
+          },
+          {
+            "temp_c": 45.0,
+            "efficiency_pct": 100.82,
+            "readings": 1847
+          },
+          {
+            "temp_c": 47.0,
+            "efficiency_pct": 101.08,
+            "readings": 2176
+          },
+          {
+            "temp_c": 49.0,
+            "efficiency_pct": 99.06,
+            "readings": 1921
+          },
+          {
+            "temp_c": 51.0,
+            "efficiency_pct": 98.36,
+            "readings": 1469
+          },
+          {
+            "temp_c": 53.0,
+            "efficiency_pct": 96.43,
+            "readings": 1389
+          },
+          {
+            "temp_c": 55.0,
+            "efficiency_pct": 95.39,
+            "readings": 1039
+          },
+          {
+            "temp_c": 57.0,
+            "efficiency_pct": 94.07,
+            "readings": 848
+          },
+          {
+            "temp_c": 59.0,
+            "efficiency_pct": 93.94,
+            "readings": 984
+          },
+          {
+            "temp_c": 61.0,
+            "efficiency_pct": 92.41,
+            "readings": 596
+          },
+          {
+            "temp_c": 63.0,
+            "efficiency_pct": 91.49,
+            "readings": 212
+          }
+        ],
+        "by_sunlight_band_pct_per_c": {
+          "0.3-0.5": 0.018,
+          "0.5-0.7": -0.327,
+          "0.7-0.9": -0.292,
+          "0.9-1.3": -0.296
+        },
+        "verdict": "Inside the typical crystalline-silicon range (-0.5 to -0.3 %/\u00b0C). It holds up: in 3 of 4 narrow sunlight bands, hotter panels still give less power. Why it can differ from a datasheet: hot panels and strong sunlight happen at the same time, so the fit also picks up other midday effects (sun angle, inverter limits), and there is only one panel-temperature sensor for the whole plant.",
+        "cross_check_no_alert_rows_pct_per_c": -0.408,
+        "physics_model_gamma_pct_per_c": -0.41,
+        "coefficient_used_pct_per_c": -0.392,
+        "coefficient_source": "measured from our data",
+        "hot_hours_total": 83.75,
+        "heat_loss_kwh_total": 492219.0,
+        "heat_loss_inr_total": 1476657.0,
+        "heat_loss_pct_of_25c_energy": 8.51,
+        "hottest_day": {
+          "date": "2020-05-23",
+          "max_module_c": 65.5,
+          "summary": "Panels reached 66 \u00b0C at 12:30 PM \u2014 heat cost about 10% of today's energy (21,733 kWh, \u20b965,197 at the assumed tariff); 3.75 h above 50 \u00b0C."
+        },
+        "costliest_heat_day": {
+          "date": "2020-05-25",
+          "heat_loss_kwh": 24750.3,
+          "summary": "Panels reached 61 \u00b0C at 1:15 PM \u2014 heat cost about 11% of today's energy (24,750 kWh, \u20b974,251 at the assumed tariff); 6.25 h above 50 \u00b0C."
+        },
+        "panel_heating": {
+          "heating_c_per_kw_m2": 29.76,
+          "heating_at_zero_sun_c": -0.69,
+          "heating_per_0_1_kw_m2_c": 2.98,
+          "r2": 0.914,
+          "max_heating_c": 35.2
+        }
+      },
+      "plant_2": {
+        "coefficient_pct_per_c": -0.304,
+        "ci95_pct_per_c": [
+          -0.446,
+          -0.153
+        ],
+        "rows": 14734,
+        "days": 34,
+        "fit_line": {
+          "efficiency_at_25c_pct": 105.34,
+          "slope_pct_points_per_c": -0.3198,
+          "temp_min_c": 26.9,
+          "temp_max_c": 66.6
+        },
+        "binned": [
+          {
+            "temp_c": 27.0,
+            "efficiency_pct": 115.8,
+            "readings": 40
+          },
+          {
+            "temp_c": 29.0,
+            "efficiency_pct": 108.49,
+            "readings": 147
+          },
+          {
+            "temp_c": 31.0,
+            "efficiency_pct": 102.69,
+            "readings": 371
+          },
+          {
+            "temp_c": 33.0,
+            "efficiency_pct": 101.19,
+            "readings": 770
+          },
+          {
+            "temp_c": 35.0,
+            "efficiency_pct": 102.12,
+            "readings": 1213
+          },
+          {
+            "temp_c": 37.0,
+            "efficiency_pct": 103.75,
+            "readings": 1296
+          },
+          {
+            "temp_c": 39.0,
+            "efficiency_pct": 100.54,
+            "readings": 1106
+          },
+          {
+            "temp_c": 41.0,
+            "efficiency_pct": 97.36,
+            "readings": 1089
+          },
+          {
+            "temp_c": 43.0,
+            "efficiency_pct": 98.06,
+            "readings": 1151
+          },
+          {
+            "temp_c": 45.0,
+            "efficiency_pct": 99.74,
+            "readings": 882
+          },
+          {
+            "temp_c": 47.0,
+            "efficiency_pct": 99.31,
+            "readings": 870
+          },
+          {
+            "temp_c": 49.0,
+            "efficiency_pct": 97.98,
+            "readings": 1414
+          },
+          {
+            "temp_c": 51.0,
+            "efficiency_pct": 97.2,
+            "readings": 1277
+          },
+          {
+            "temp_c": 53.0,
+            "efficiency_pct": 97.42,
+            "readings": 855
+          },
+          {
+            "temp_c": 55.0,
+            "efficiency_pct": 96.09,
+            "readings": 820
+          },
+          {
+            "temp_c": 57.0,
+            "efficiency_pct": 94.94,
+            "readings": 799
+          },
+          {
+            "temp_c": 59.0,
+            "efficiency_pct": 93.66,
+            "readings": 301
+          },
+          {
+            "temp_c": 61.0,
+            "efficiency_pct": 92.67,
+            "readings": 160
+          },
+          {
+            "temp_c": 63.0,
+            "efficiency_pct": 94.16,
+            "readings": 144
+          }
+        ],
+        "by_sunlight_band_pct_per_c": {
+          "0.3-0.5": -0.028,
+          "0.5-0.7": 0.22,
+          "0.7-0.9": 0.364,
+          "0.9-1.3": 0.106
+        },
+        "verdict": "Inside the typical crystalline-silicon range (-0.5 to -0.3 %/\u00b0C). It does NOT hold up well: in only 1 of 4 narrow sunlight bands do hotter panels give less power, so for this plant the number is weak evidence. Why it can differ from a datasheet: hot panels and strong sunlight happen at the same time, so the fit also picks up other midday effects (sun angle, inverter limits), and there is only one panel-temperature sensor for the whole plant.",
+        "cross_check_no_alert_rows_pct_per_c": -0.378,
+        "physics_model_gamma_pct_per_c": -0.248,
+        "coefficient_used_pct_per_c": -0.304,
+        "coefficient_source": "measured from our data",
+        "hot_hours_total": 105.0,
+        "heat_loss_kwh_total": 389705.0,
+        "heat_loss_inr_total": 1169115.0,
+        "heat_loss_pct_of_25c_energy": 6.76,
+        "hottest_day": {
+          "date": "2020-06-02",
+          "max_module_c": 66.6,
+          "summary": "Panels reached 67 \u00b0C at 12:45 PM \u2014 heat cost about 7% of today's energy (11,430 kWh, \u20b934,290 at the assumed tariff); 3.5 h above 50 \u00b0C."
+        },
+        "costliest_heat_day": {
+          "date": "2020-05-22",
+          "heat_loss_kwh": 20126.2,
+          "summary": "Panels reached 64 \u00b0C at 1 PM \u2014 heat cost about 9% of today's energy (20,126 kWh, \u20b960,379 at the assumed tariff); 6.25 h above 50 \u00b0C."
+        },
+        "panel_heating": {
+          "heating_c_per_kw_m2": 25.58,
+          "heating_at_zero_sun_c": -1.21,
+          "heating_per_0_1_kw_m2_c": 2.56,
+          "r2": 0.921,
+          "max_heating_c": 33.4
+        }
+      }
+    }
+  },
+  "breakdown": {
+    "order": [
+      "clear_sky_potential",
+      "clouds",
+      "heat",
+      "faults",
+      "not measured",
+      "other",
+      "actual"
+    ],
+    "kind": {
+      "clouds": "natural",
+      "heat": "natural",
+      "faults": "fixable",
+      "not measured": "unknown",
+      "other": "unknown"
+    },
+    "method": "Clear-sky potential = power at 25 \u00b0C with the actual sunlight (Phase W2) + cloud loss. Cloud loss = (clear-sky sunlight \u2212 actual sunlight) \u00d7 the plant's power per unit of sunlight at 25 \u00b0C. Other = the remainder, so the parts always add up to actual energy.",
+    "tariff_inr_per_kwh": 3.0,
+    "by_plant": {
+      "plant_1": {
+        "clear_sky_potential_kwh": 8175733.4,
+        "cloud_loss_kwh": 2393989.5,
+        "heat_loss_kwh": 492219.2,
+        "fault_loss_kwh": 14281.8,
+        "not_measured_kwh": 1746.0,
+        "other_kwh": -14452.3,
+        "actual_kwh": 5287949.2,
+        "natural_loss_kwh": 2886208.7,
+        "fixable_loss_kwh": 14281.8,
+        "fault_loss_inr": 42845.4,
+        "natural_loss_inr": 8658626.0,
+        "pct_of_potential": {
+          "clouds": 29.28,
+          "heat": 6.02,
+          "faults": 0.17,
+          "not measured": 0.02,
+          "other": -0.18,
+          "actual": 64.68
+        },
+        "power_per_sunlight_at_25c_kw": 31963.0,
+        "physics_model_cross_check_kw": 31972.2,
+        "biggest_cloud_loss_day": {
+          "date": "2020-05-18",
+          "cloud_loss_kwh": 122802.46,
+          "summary": "18 May: clouds cost 1,22,802 kWh and heat 7,748 kWh (natural, nobody can fix them); faults cost 0 kWh (fixable)."
+        },
+        "biggest_fault_loss_day": {
+          "date": "2020-06-07",
+          "fault_loss_kwh": 8852.5,
+          "summary": "07 Jun: clouds cost 49,800 kWh and heat 17,766 kWh (natural, nobody can fix them); faults cost 8,853 kWh (fixable)."
+        }
+      },
+      "plant_2": {
+        "clear_sky_potential_kwh": 7751211.6,
+        "cloud_loss_kwh": 1984013.6,
+        "heat_loss_kwh": 389704.6,
+        "fault_loss_kwh": 913398.4,
+        "not_measured_kwh": 378743.4,
+        "other_kwh": 8715.9,
+        "actual_kwh": 4076635.8,
+        "natural_loss_kwh": 2373718.2,
+        "fixable_loss_kwh": 913398.4,
+        "fault_loss_inr": 2740195.2,
+        "natural_loss_inr": 7121154.5,
+        "pct_of_potential": {
+          "clouds": 25.6,
+          "heat": 5.03,
+          "faults": 11.78,
+          "not measured": 4.89,
+          "other": 0.11,
+          "actual": 52.59
+        },
+        "power_per_sunlight_at_25c_kw": 30348.1,
+        "physics_model_cross_check_kw": 29685.3,
+        "biggest_cloud_loss_day": {
+          "date": "2020-06-11",
+          "cloud_loss_kwh": 142477.84,
+          "summary": "11 Jun: clouds cost 1,42,478 kWh and heat 2,652 kWh (natural, nobody can fix them); faults cost 0 kWh (fixable)."
+        },
+        "biggest_fault_loss_day": {
+          "date": "2020-05-27",
+          "fault_loss_kwh": 51269.5,
+          "summary": "27 May: clouds cost 19,917 kWh and heat 17,814 kWh (natural, nobody can fix them); faults cost 51,270 kWh (fixable)."
+        }
+      }
+    },
+    "total": {
+      "clear_sky_potential_kwh": 15926945.0,
+      "cloud_loss_kwh": 4378003.1,
+      "heat_loss_kwh": 881923.8,
+      "fault_loss_kwh": 927680.2,
+      "not_measured_kwh": 380489.4,
+      "other_kwh": -5736.4,
+      "actual_kwh": 9364585.0,
+      "natural_loss_kwh": 5259926.9,
+      "fixable_loss_kwh": 927680.2,
+      "fault_loss_inr": 2783040.6,
+      "natural_loss_inr": 15779780.5,
+      "pct_of_potential": {
+        "clouds": 27.49,
+        "heat": 5.54,
+        "faults": 5.82,
+        "not measured": 2.39,
+        "other": -0.04,
+        "actual": 58.8
+      }
+    }
+  },
+  "validation_weather": {
+    "method": "Does knowing the weather make fault detection better? A fair before/after test (Phase W4). Same seeded injections in both versions.",
+    "rule": "Under a difficult sky (Overcast, or variability \u2265 0.2) for at least 50% of its readings, an underperformance event must last \u2265 1.5 h OR be at least 50% below its neighbours.",
+    "cloudy_day_definition": "sunshine score below 70 (Phase W1)",
+    "clean_inverter_days": 356,
+    "cloudy_clean_inverter_days": 254,
+    "caveat": "Clean days are days with no alert at default thresholds, so false alarms at default are ~0 by construction; the sensitive setting shows how the rule behaves when clouds DO cause alerts. Without official fault labels we cannot tell which real alerts are false.",
+    "results": [
+      {
+        "setting": "default",
+        "version": "before",
+        "under_any_day_caught": 68,
+        "under_any_day_injected": 95,
+        "under_any_day_recall_pct": 71.6,
+        "under_cloudy_day_caught": 45,
+        "under_cloudy_day_injected": 65,
+        "under_cloudy_day_recall_pct": 69.2,
+        "trip_cloudy_day_caught": 65,
+        "trip_cloudy_day_injected": 65,
+        "trip_cloudy_day_recall_pct": 100.0,
+        "false_alarms_clean_days": 0,
+        "false_alarms_cloudy_days": 0,
+        "real_underperformance_alerts": 16
+      },
+      {
+        "setting": "default",
+        "version": "after",
+        "under_any_day_caught": 63,
+        "under_any_day_injected": 95,
+        "under_any_day_recall_pct": 66.3,
+        "under_cloudy_day_caught": 43,
+        "under_cloudy_day_injected": 65,
+        "under_cloudy_day_recall_pct": 66.2,
+        "trip_cloudy_day_caught": 65,
+        "trip_cloudy_day_injected": 65,
+        "trip_cloudy_day_recall_pct": 100.0,
+        "false_alarms_clean_days": 0,
+        "false_alarms_cloudy_days": 0,
+        "real_underperformance_alerts": 16
+      },
+      {
+        "setting": "sensitive",
+        "version": "before",
+        "under_any_day_caught": 95,
+        "under_any_day_injected": 95,
+        "under_any_day_recall_pct": 100.0,
+        "under_cloudy_day_caught": 65,
+        "under_cloudy_day_injected": 65,
+        "under_cloudy_day_recall_pct": 100.0,
+        "trip_cloudy_day_caught": 65,
+        "trip_cloudy_day_injected": 65,
+        "trip_cloudy_day_recall_pct": 100.0,
+        "false_alarms_clean_days": 59,
+        "false_alarms_cloudy_days": 32,
+        "real_underperformance_alerts": 443
+      },
+      {
+        "setting": "sensitive",
+        "version": "after",
+        "under_any_day_caught": 93,
+        "under_any_day_injected": 95,
+        "under_any_day_recall_pct": 97.9,
+        "under_cloudy_day_caught": 61,
+        "under_cloudy_day_injected": 65,
+        "under_cloudy_day_recall_pct": 93.8,
+        "trip_cloudy_day_caught": 65,
+        "trip_cloudy_day_injected": 65,
+        "trip_cloudy_day_recall_pct": 100.0,
+        "false_alarms_clean_days": 35,
+        "false_alarms_cloudy_days": 18,
+        "real_underperformance_alerts": 258
+      }
+    ],
+    "keep_rule": false,
+    "injected_faults_lost": 13,
+    "false_alarms_before": 59,
+    "false_alarms_after": 35,
+    "rule_enabled_in_config": false,
+    "verdict": "DO NOT KEEP the weather-aware rule: false alarms on clean test days 59 \u2192 35 (default + sensitive thresholds), injected faults lost: 13."
   }
 }

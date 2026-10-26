@@ -3,6 +3,7 @@
 const PAGES = [
   { key: "overview", label: "Overview", href: "index.html" },
   { key: "plant", label: "Plant", href: "plant.html" },
+  { key: "weather", label: "Weather & Energy", href: "weather.html" },
   { key: "inverter", label: "Inverters", href: "inverter.html" },
   { key: "alerts", label: "Alerts", href: "alerts.html" },
   { key: "validation", label: "Validation", href: "validation.html" },
