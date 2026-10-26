@@ -62,7 +62,11 @@ drop the line if the team cannot find one.
 ## 9. Scalability
 - Works for **any plant, any number of inverters**: the model learns each plant from its own data.
 - One command rebuilds everything (`python run_all.py`, ~97 s for 44 inverters × 34 days on a laptop).
-- Next step: live 15-minute data stream instead of replay; optional NASA POWER site estimator for new sites (not built yet).
+- **Solar Site Planner:** type any place in India + plant size → free NASA POWER satellite weather → expected
+  energy per month, using the heat effect we measured. 100 kW, flat panels: Delhi 1,271, Jaipur 1,413,
+  Chennai 1,387 kWh per kW per year.
+- **Accuracy (honest):** backtest on our plant 2.4% per day on unseen days; within 0.3–6.5% of the EU's PVGIS calculator for the 3 cities.
+- Next step: live 15-minute data stream instead of replay.
 - *Honest:* we have not benchmarked 1,000 inverters.
 
 ## 10. Competitive advantage
@@ -79,6 +83,6 @@ drop the line if the team cannot find one.
 - Live data feed + email/SMS alerts.
 - More seasons of data (we only have May–June) → better accuracy all year.
 - String-level data → pinpoint the exact panel string.
-- Sourced tariff and cost data; NASA POWER site estimator for new sites.
+- Sourced tariff and cost data; tilted panels and real plant designs in the Solar Site Planner.
 - Plant GPS location → a physical clear-sky model instead of our data-learned curve.
 - *Close:* "SolarSense finds the losses in minutes, explains them, and puts a rupee value on them."

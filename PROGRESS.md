@@ -23,7 +23,7 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - [x] **Phase 9** — Web dashboard: layout and Overview page (P4)
 - [x] **Phase 10** — Plant, Inverter and Alerts pages (P4)
 - [x] **Phase 11** — Extras: A validation + about · B live replay (opt.) · C AI summaries (opt.) (P4 + P3) — A+B done, C skipped
-- [ ] **Phase 12** — Optional: New Site Estimator (P3)
+- [x] **Phase 12** — Optional: Solar Site Planner (P3) — built 2026-10-26 (NASA POWER)
 - [x] **Phase 13** — One-command pipeline, tests, polish (everyone)
 - [x] **Phase 14** — Deploy for free + presentation pack (P4 + everyone) — live at https://ojasguptaa.github.io/solarsense/
 
@@ -292,3 +292,30 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - Browser-tested with headless Chrome (laptop 1366 px + phone 390 px emulation): Overview, Weather & Energy,
   Alerts panel, Inverter page — no console errors, no sideways scroll; replay, calendar click, waterfall toggle and
   dark theme work.
+
+### Phase 12 — Solar Site Planner with NASA POWER (2026-10-26)
+- Why now: the DEV-P01 card lists "NASA POWER weather data" as a target data source; it was the only item not used.
+- `engine/site_estimator.py` (`python -m engine.site_estimator`, also run_all step 9): fetches the last 12 complete
+  months of daily sunlight (ALLSKY_SFC_SW_DWN) + air temperature (T2M) from NASA POWER (free, no key, 10 s timeout),
+  saves each answer in `data/external/nasa_power/` (works offline afterwards; falls back to an older saved year).
+- Energy per day = size × sunlight × (1 − 14% system losses) × 96% inverter (ASSUMPTION: NREL PVWatts defaults)
+  × (1 + measured −0.392 %/°C × (panel temp − 25)). Panel temp = air + 3.07 °C daytime offset + 29.76 °C per kW/m²
+  of sun − 0.69, with sun = daily total ÷ 8.80 effective hours — all measured on Plant 1 (W2 + Kaggle sensors).
+  Check: this predicts Plant 1's sunlight-weighted panel temperature as 45.96 °C vs 45.70 °C measured.
+- Presets (100 kW, flat panels, Oct 2025 – Sep 2026): Delhi 1,271, Jaipur 1,413, Chennai 1,387 kWh per kW per year;
+  heat costs 8.5–9.6%. Saved in metrics.json → `"site_estimator"`; assumption in `reports/assumptions.md`.
+- API: `GET /api/site-estimate?lat=&lon=&capacity_kw=` (India only → else 422; NASA down + nothing saved → 503 with a
+  friendly message) and `GET /api/site-estimate/presets`. Page `web/estimator.html` (nav "Site Planner"): inputs, Delhi /
+  Jaipur / Chennai buttons, monthly bars + panel-temperature line, KPI tiles, assumptions table, uncertainty note.
+  GitHub Pages copy: preset cities only (custom places need the local server).
+- Tests: `tests/test_site_estimator.py` (8, NASA faked — no network) → **101 pass**. Browser-tested 1366 px + 390 px,
+  custom location fetched live; no console errors, no sideways scroll. Nav padding trimmed so 8 links fit at 1366 px.
+- Renamed the page to **Solar Site Planner** (menu "Site Planner").
+- Accuracy (`engine/validate_site.py`, run_all step 10, metrics `"site_accuracy"`, card "How accurate is this?"):
+  backtest on Plant 1 (time split, clean days, calibrated on training days only, only plant size tuned) →
+  2.4% per day on 9 unseen days, -2.0% total
+  (sunlight-only baseline 3.8%). PVGIS (EU JRC, free, no key; flat, same losses; answers
+  saved in `data/external/pvgis/`) vs ours on NASA 2021–2025: Delhi -6.5%, Jaipur
+  -0.3%, Chennai -0.7% — NASA sunlight 4–11% lower, our maths 4–6% higher
+  (no glass-reflection loss). Year-to-year up to 5.5%. Tests
+  `tests/test_validate_site.py` (3) → **104 pass**.

@@ -57,7 +57,7 @@ h2 { font-size: 15px; margin: 0 0 12px; font-weight: 600; }
 .brand svg { width: 26px; height: 26px; }
 .nav { display: flex; gap: 2px; overflow-x: auto; flex: 1; }
 .nav a {
-  padding: 6px 12px; border-radius: 6px; color: var(--muted); text-decoration: none; white-space: nowrap; font-weight: 500;
+  padding: 6px 9px; border-radius: 6px; color: var(--muted); text-decoration: none; white-space: nowrap; font-weight: 500;
 }
 .nav a:hover { background: var(--bg); color: var(--text); }
 .nav a.active { background: var(--accent-soft); color: var(--link); }
@@ -266,3 +266,11 @@ th.sortable:hover { color: var(--text); }
   .calendar { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 }
 .card-head .toggle { margin-bottom: 12px; }
+
+/* ---------- Solar Site Planner (Phase 12) ---------- */
+.site-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.site-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); flex: 1 1 140px; }
+.site-form button { flex: 0 0 auto; }
+#presets button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--link); font-weight: 600; }
+.site-status { font-size: 13px; color: var(--muted); margin: 10px 0 0; min-height: 1.2em; }
+.site-status.error { color: var(--bad); }

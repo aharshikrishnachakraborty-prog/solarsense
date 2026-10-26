@@ -21,7 +21,7 @@ from engine.validate import injection_runs
 
 VERSIONS = {"before": False, "after": True}   # WEATHER_AWARE_UNDER off / on
 SETTINGS = ["default", "sensitive"]
-MODEL_CARD_MARKER = "## Weather-aware fault detection (Phase W4)"
+MODEL_CARD_MARKER = config.MODEL_CARD_WEATHER_MARKER
 
 
 def cloudy_clean_days(clean_days):

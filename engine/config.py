@@ -330,3 +330,48 @@ CONFIDENCE_LEVELS = ["Low", "Medium", "High"]
 # Validation on cloudy days: a day counts as "cloudy" below this sunshine score (W1).
 VALIDATION_CLOUDY_DAY_MAX_SUNSHINE = 70
 VALIDATION_WEATHER_FILE = PROCESSED_DIR / "validation_weather.parquet"
+# Heading of the model-card section validate_weather.py writes (the Phase 3 rebuild keeps it).
+MODEL_CARD_WEATHER_MARKER = "## Weather-aware fault detection (Phase W4)"
+
+# ---------------------------------------------------------------------------
+# Phase 12 — Solar Site Planner with NASA POWER (engine/site_estimator.py)
+# ---------------------------------------------------------------------------
+# Free NASA satellite data, no key: daily sunlight on flat ground (kWh/m²/day) and
+# air temperature at 2 m (°C) for any location. It arrives a few days late, so it is
+# only used to plan NEW sites — never for live alerts.
+NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
+NASA_POWER_PARAMETERS = ["ALLSKY_SFC_SW_DWN", "T2M"]
+NASA_POWER_TIMEOUT_S = 10
+NASA_POWER_DELAY_DAYS = 10          # use only months that ended at least this long ago
+NASA_POWER_MISSING = -999           # NASA's "no value" marker
+NASA_CACHE_DIR = DATA_DIR / "external" / "nasa_power"   # answers saved to disk (also work offline)
+SITE_MONTHS = 12                    # estimate the last 12 complete months
+# Only places in India (rough bounding box), and a sensible plant size.
+SITE_LAT_RANGE = (6.0, 37.5)
+SITE_LON_RANGE = (68.0, 97.5)
+SITE_MAX_CAPACITY_KW = 1_000_000    # 1 GW
+# ASSUMPTION: losses we cannot measure without the plant's design (dust, wiring,
+# mismatch, inverter). We use NREL PVWatts' published defaults: 14% system losses
+# and 96% inverter efficiency. Temperature is handled separately with OUR measured
+# coefficient. Panels are assumed flat (tilting them towards the sun gives more).
+SITE_SYSTEM_LOSSES_PCT = 14.0
+SITE_INVERTER_EFFICIENCY_PCT = 96.0
+# Which plant's measured heat behaviour to reuse (Plant 1's fit is the strong one, see W2).
+SITE_CALIBRATION_PLANT = 1
+SITE_CALIBRATION_MIN_READINGS = 90  # of 96 per day: only nearly complete days are used to calibrate
+# Example sites for the web page buttons (city centres).
+SITE_PRESETS = [{"name": "Delhi", "lat": 28.61, "lon": 77.21},
+                {"name": "Jaipur", "lat": 26.91, "lon": 75.79},
+                {"name": "Chennai", "lat": 13.08, "lon": 80.27}]
+SITE_DEFAULT_CAPACITY_KW = 100
+# Accuracy checks for the Solar Site Planner (engine/validate_site.py):
+# 1) backtest the daily method on our own plant (days where faults + missing readings
+#    cost at most this share of the energy, so the plant was healthy),
+SITE_BACKTEST_MAX_DIRTY_SHARE = 0.02
+# 2) compare with PVGIS (EU Joint Research Centre — free, no key, an independent full
+#    PV simulation) for the preset cities, with the same losses and flat panels,
+PVGIS_URL = "https://re.jrc.ec.europa.eu/api/v5_2/PVcalc"
+PVGIS_CACHE_DIR = DATA_DIR / "external" / "pvgis"
+PVGIS_TIMEOUT_S = 30                # PVGIS simulates every hour of 16 years — slower than NASA
+# 3) and repeat the estimate on these past full years of NASA weather (year-to-year spread).
+SITE_SPREAD_YEARS = (2021, 2025)

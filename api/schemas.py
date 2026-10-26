@@ -200,3 +200,37 @@ class Assumption(BaseModel):
     unit: str
     why: str
     source: str
+
+
+class SitePreset(BaseModel):
+    name: str
+    lat: float
+    lon: float
+
+
+class SitePresetsResponse(BaseModel):
+    presets: list[SitePreset]
+    default_capacity_kw: float
+    lat_range: list[float]
+    lon_range: list[float]
+    accuracy: Optional[dict[str, Any]] = Field(None, description="Backtest on our plant, PVGIS cross-check and "
+                                                                 "year-to-year spread (engine/validate_site.py).")
+
+
+class SiteEstimateResponse(BaseModel):
+    lat: float
+    lon: float
+    capacity_kw: float
+    period_start: str
+    period_end: str
+    data_from: str = Field(description="Where NASA's numbers came from: just downloaded, or a copy saved on disk.")
+    months: list[dict[str, Any]] = Field(description="Per month: sunlight, air & panel temperature, expected kWh.")
+    yearly_kwh: float
+    specific_yield_kwh_per_kw: float
+    heat_loss_pct: Optional[float]
+    best_month: str
+    worst_month: str
+    days_missing: int
+    assumptions: list[dict[str, Any]]
+    uncertainty_note: str
+    takeaway: str

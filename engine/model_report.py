@@ -80,6 +80,11 @@ def write_model_card(metrics):
               "- Random Forests cannot predict beyond what they saw (e.g. sunlight stronger than any training day).",
               "- Plant 1 DC values were rescaled (see assumptions.md); the models predict AC power, which was not "
               "rescaled.", ""]
+    # Keep the weather section written later by engine/validate_weather.py, so a quick rebuild
+    # (run_all.py --skip-validation) does not throw away its last before/after test result.
+    old = config.MODEL_CARD.read_text(encoding="utf-8") if config.MODEL_CARD.exists() else ""
+    if config.MODEL_CARD_WEATHER_MARKER in old:
+        lines += [config.MODEL_CARD_WEATHER_MARKER + old.split(config.MODEL_CARD_WEATHER_MARKER, 1)[1].rstrip("\n"), ""]
     config.MODEL_CARD.write_text("\n".join(lines), encoding="utf-8")
 
 

@@ -1,4 +1,4 @@
-# 25 tough judge questions — honest answers
+# 27 tough judge questions — honest answers
 
 Numbers come from `key_numbers.md` (sources listed there). If you don't know an answer on stage, say
 "we didn't measure that" — never guess.
@@ -132,4 +132,37 @@ days, both plants) and fixable (faults: 9,27,680 kWh). Only the red bar needs a 
 excuses: on 15 May, Plant 2's sky was clear (sunshine score 96), yet faults cost 38,049 kWh — so "it was cloudy"
 is not the answer. And knowing heat costs ~6% of the clear-sky potential helps when planning ventilation or
 cleaning schedules.
+
+---
+
+## Solar Site Planner (Phase 12)
+
+**26. The problem card lists NASA POWER data — how do you use it, and how does this scale to a new plant?**
+On the Site Planner page you type any place in India and a plant size. We ask NASA POWER (free, no key) for the last 12
+months of daily sunlight and air temperature there, and estimate energy per month. The heat part reuses what we
+measured on our Kaggle plant (−0.39% per °C; panels ~30 °C hotter than the air in full sun). Losses we cannot
+measure without a real design (dust, wiring, inverter) are labelled ASSUMPTION (NREL PVWatts defaults: 14% and 96%).
+Result for 100 kW of flat panels: Delhi 1,271, Jaipur 1,413, Chennai 1,387 kWh per kW per year. Honest limits:
+satellite data is averaged over a large area, we assume flat panels (tilting gives more), and NASA data arrives a few
+days late — so we use it to plan new sites, never for live alerts.
+
+**27. How accurate is the Site Planner? You have no real plant in Delhi to compare with.**
+True — so we checked it three ways (`python -m engine.validate_site`, shown on the page under "How accurate is this?"):
+1. **Backtest on our own plant:** we gave the method Plant 1's real daily sunlight and air temperature,
+   tuned only the plant size on the first days, and predicted the last 9 days it never saw: off by
+   **2.4% per day** on average, **-2.0%** in total
+   (without the heat effect: 3.8% per day — so the heat part helps).
+2. **Independent check:** the EU's PVGIS calculator (free) for the same flat plant with the same losses:
+
+   | City | PVGIS kWh/kW | Ours kWh/kW (NASA 2021–25) | Difference | from sunlight data | from our maths |
+   |---|---|---|---|---|---|
+   | Delhi | 1,375 | 1,285 | -6.5% | -11.4% | +5.5% |
+   | Jaipur | 1,398 | 1,394 | -0.3% | -5.6% | +5.7% |
+   | Chennai | 1,385 | 1,375 | -0.7% | -4.5% | +4.0% |
+
+   The biggest uncertainty is the **sunlight data** (NASA vs PVGIS's ERA5 differ by 4–11%), not our formula. Our
+   maths gives 4–6% more energy from the same sunlight — PVGIS also subtracts ~3% for light reflected off the glass,
+   which our daily method does not.
+3. **Weather year to year:** the same city varies up to 5.5% between 2021 and 2025.
+So: a planning estimate — treat it as roughly ±10% (our largest gap was the 11% sunlight-data difference for Delhi), and we can say exactly where the uncertainty comes from.
 

@@ -106,3 +106,12 @@ stricter rule for cloudy skies; it lost real faults, so we switched it off and s
 **The page (P4):** Weather & Energy — sky band, sunlight vs clear-sky chart, temperature chart, waterfall,
 calendar of all days, and "every +1 °C costs ~X% power".
 
+---
+
+## P3 — the Solar Site Planner (Phase 12)
+
+NASA has satellites that measure sunlight and temperature everywhere on Earth, and gives the numbers away for free
+(NASA POWER). We ask: "how much sun did this place get every day last year?" Then: plant size × sunlight × losses
+× heat effect = energy. The heat effect is the one we measured on our own plant, so a hot city like Chennai loses
+more to heat than Delhi in winter. It is a planning estimate — the page says so and lists every assumption.
+

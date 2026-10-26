@@ -83,6 +83,29 @@ def weather_rows(m):
     return lines
 
 
+def site_rows(m):
+    """Solar Site Planner (Phase 12): yearly energy for the preset cities from NASA POWER weather."""
+    if not m.get("site_estimator", {}).get("presets"):
+        return []
+    lines = ["", "## Solar Site Planner (NASA POWER)", "", "| What we say | Number | Source |", "|---|---|---|"]
+    for city, info in m["site_estimator"]["presets"].items():
+        lines.append(row(f"{city}: {indian(info['capacity_kw'])} kW of flat panels, {info['period_start']} to "
+                         f"{info['period_end']}", f"{indian(info['yearly_kwh'])} kWh/year "
+                         f"({indian(info['specific_yield_kwh_per_kw'])} kWh per kW), heat costs {info['heat_loss_pct']}%",
+                         M + " → site_estimator"))
+    acc = m.get("site_accuracy")
+    if acc and acc.get("summary"):
+        back = acc["backtest"]
+        lines.append(row(f"Backtest on Plant {back['plant']} ({back['test_days']} unseen days): error per day / total",
+                         f"{back['planner']['daily_error_pct']}% / {back['planner']['total_error_pct']:+}%",
+                         M + " → site_accuracy → backtest"))
+        for city, c in acc["cities"].items():
+            lines.append(row(f"{city}: ours vs EU PVGIS (kWh per kW, flat panels)",
+                             f"{indian(c['ours_yield_kwh_per_kw'])} vs {indian(c['pvgis']['yield_kwh_per_kw'])} "
+                             f"({c['total_gap_pct']:+}%)", M + " → site_accuracy → cities"))
+    return lines
+
+
 def main():
     """Collect the numbers and write the markdown file."""
     m = load_metrics()
@@ -173,6 +196,7 @@ def main():
                      f"{sensitive['recall_pct']}% / {sensitive['false_alarms_on_clean_days']}", M + " → validation"))
 
     lines += weather_rows(m)
+    lines += site_rows(m)
 
     lines += ["", "## External facts to cite (NOT from our data — find a source before using)", "",
               "Do **not** say any of these on stage without a cited source (title, organisation, year, link):", "",
