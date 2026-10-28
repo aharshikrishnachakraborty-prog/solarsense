@@ -319,3 +319,8 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
   -0.3%, Chennai -0.7% — NASA sunlight 4–11% lower, our maths 4–6% higher
   (no glass-reflection loss). Year-to-year up to 5.5%. Tests
   `tests/test_validate_site.py` (3) → **104 pass**.
+
+## Removed: Solar Site Planner and Validation tabs (2026-10-28)
+- Site Planner removed completely (page, API route, engine/site_estimator.py, engine/validate_site.py, tests, NASA/SITE config, metrics sections). NASA POWER is no longer used.
+- Validation **tab** removed only — the injected-fault validation (engine/validate.py, validate_weather.py), `/api/validation` and its metrics stay as evidence.
+- pytest: 93 passed; `python run_all.py --skip-validation` runs clean.

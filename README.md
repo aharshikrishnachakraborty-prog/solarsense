@@ -39,8 +39,6 @@ money (₹) lost — shown on a web dashboard that operators can act on.
 | **Weather & Energy** | The sky read from sunlight (☀️ ⛅ ☁️ 🌫️), panel heat, the energy waterfall (natural vs fixable losses), calendar of all days |
 | **Inverters** | One inverter: actual vs expected vs neighbours, alert periods shaded, daily trend, its alerts |
 | **Alerts** | Filter/search/sort all alerts, "Why?" panel with evidence chart, Acknowledge / Resolve, CSV export |
-| **Validation** | Proof the detector works: faults we planted on purpose, what it catches and misses |
-| **Site Planner** | Plan a new plant anywhere in India: NASA POWER weather → expected energy per month |
 | **About** | How it works, data sources, assumptions, limitations, team |
 
 Also try **http://localhost:8000/docs** to call the API directly.
@@ -59,8 +57,6 @@ Also try **http://localhost:8000/docs** to call the API directly.
 6. **Validation:** we plant faults in healthy data and check the detector finds them (no official labels exist),
    also on cloudy days, and test whether a weather-aware rule helps (it lost real faults, so it is off).
 7. The **API** serves the precomputed results; the **website** only displays them.
-8. **Planning new plants:** the Solar Site Planner asks NASA POWER (free satellite weather) for any place in India and
-   reuses the heat behaviour measured on our plants to estimate monthly energy (needs internet once per place).
 
 ## Project layout
 

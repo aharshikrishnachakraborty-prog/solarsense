@@ -66,7 +66,6 @@
         <ul class="list">
           <li><strong>Kaggle — "Solar Power Generation Data"</strong> by anikannal: two solar plants in India, 15-minute readings, May–June 2020.
             <div class="list-meta">Licence: see the dataset page on Kaggle. <em>TODO(team): confirm and write the exact licence here.</em> Plant locations (GPS) are not in the dataset.</div></li>
-          <li><strong>NASA POWER</strong> (Solar Site Planner page): daily satellite sunlight and air temperature for any place in India, CC BY 4.0, no key required. Used only to plan new sites — never for live alerts.</li>
           <li><strong>Chart.js</strong> — charts on this website (MIT licence).</li>
           <li><strong>Python libraries</strong>: pandas, NumPy, scikit-learn, FastAPI and others (open-source).</li>
         </ul>
@@ -77,7 +76,7 @@
           <li id="lim-days">Only a few weeks of data from one season (May–June); accuracy in winter or monsoon is unknown.</li>
           <li>One weather sensor per plant: a cloud over one corner of a plant can look like a fault there. Comparing each inverter with its neighbours reduces this.</li>
           <li>No cloud sensor and no GPS: the sky (clear → overcast) is read from the sunlight against a clear-sky curve learned from the brightest days — an estimate, not a measurement. The temperature effect is measured from our data; for Plant 2 it is weak evidence.</li>
-          <li>No official fault labels exist, so we validated with faults we planted ourselves — see the Validation page.</li>
+          <li>No official fault labels exist, so we validated with faults we planted ourselves (results in reports/metrics.json → validation).</li>
           <li>Plant 1's DC power was rescaled because the raw values were physically impossible (see assumptions below).</li>
           <li>The ₹ figures use an assumed tariff (configurable) until the team cites a sourced one — see Assumptions below.</li>
           <li id="lim-small">Small underperformance is usually not caught, by design, to avoid false alarms.</li>

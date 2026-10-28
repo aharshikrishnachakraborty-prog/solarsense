@@ -80,12 +80,7 @@ Target users: plant operators, O&M (operations & maintenance) engineers.
 - Raw files live in `data/raw/` and are never edited. The team downloads them manually from Kaggle (free account).
 - Plant GPS location is **not** in the dataset — never claim it.
 
-### Optional — NASA POWER API (free, no key, CC BY 4.0)
-- Daily/hourly satellite irradiance (`ALLSKY_SFC_SW_DWN`) and temperature for any latitude/longitude in India.
-- Used ONLY for the optional "New Site Estimator" feature (expected yield for a user-entered location and
-  plant size). Data arrives with a few days' delay → never use it for live alerts.
-
-Credit both sources and licences on the dashboard "About" page.
+Credit the data source and licence on the dashboard "About" page.
 
 ---
 
@@ -101,7 +96,6 @@ Credit both sources and licences on the dashboard "About" page.
 | API | FastAPI + uvicorn + pydantic | "The engine's waiter: frontend asks, API answers with data" |
 | Frontend | HTML, CSS, vanilla JS, Chart.js (CDN) | "The website the operator sees" |
 | Optional summaries | Ollama local model (e.g. `llama3.2:3b`) + template fallback | "Free offline AI that turns facts into sentences" |
-| Optional site estimator | requests → NASA POWER | "Free NASA satellite data" |
 | Models | joblib | Saved model files |
 | Tests | pytest, FastAPI TestClient | Checks that nothing is broken |
 
@@ -137,8 +131,7 @@ solarsense/
 │   ├── detect_faults.py
 │   ├── losses.py
 │   ├── validate.py          # synthetic fault injection tests
-│   ├── summaries.py         # templates + optional Ollama
-│   └── site_estimator.py    # optional NASA POWER
+│   └── summaries.py         # templates + optional Ollama
 ├── api/
 │   ├── main.py              # FastAPI app, also serves the frontend
 │   └── routes/ (optional split)
@@ -147,7 +140,6 @@ solarsense/
 │   ├── plant.html
 │   ├── inverter.html
 │   ├── alerts.html
-│   ├── validation.html
 │   ├── about.html
 │   ├── css/style.css
 │   └── js/ (api.js, charts.js, one file per page)

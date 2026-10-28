@@ -16,8 +16,6 @@ fastapi==0.151.0
 uvicorn[standard]==0.54.0
 pydantic==2.14.1
 
-# Internet requests (optional NASA POWER site estimator)
-requests==2.34.2
 
 # Testing
 pytest==9.1.1

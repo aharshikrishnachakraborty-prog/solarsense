@@ -64,11 +64,8 @@ def export(out):
     with TestClient(app) as client:
         ex = Exporter(client, out)
         info = ex.save("plants")
-        for name in ["validation", "assumptions", "settings", "site-estimate/presets"]:
+        for name in ["validation", "assumptions", "settings"]:
             ex.save(name)
-        for city in config.SITE_PRESETS:   # Solar Site Planner: only the preset cities (saved NASA data on disk)
-            ex.save("site-estimate", {"lat": city["lat"], "lon": city["lon"],
-                                      "capacity_kw": config.SITE_DEFAULT_CAPACITY_KW})
         everything = ex.save("alerts", {"sort": "severity"})          # Alerts page
         for alert in everything["alerts"]:
             ex.save(f"alerts/{alert['id']}")                           # "Why?" panel

@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api.data_store import get_store
-from api.routes import alerts, plants, replay, reports, site, weather
+from api.routes import alerts, plants, replay, reports, weather
 from engine import config
 
 
@@ -33,7 +33,6 @@ app.include_router(alerts.router)
 app.include_router(reports.router)
 app.include_router(replay.router)
 app.include_router(weather.router)
-app.include_router(site.router)
 
 
 @app.get("/api/health", tags=["health"])

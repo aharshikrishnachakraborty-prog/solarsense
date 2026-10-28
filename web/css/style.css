@@ -267,10 +267,3 @@ th.sortable:hover { color: var(--text); }
 }
 .card-head .toggle { margin-bottom: 12px; }
 
-/* ---------- Solar Site Planner (Phase 12) ---------- */
-.site-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
-.site-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); flex: 1 1 140px; }
-.site-form button { flex: 0 0 auto; }
-#presets button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--link); font-weight: 600; }
-.site-status { font-size: 13px; color: var(--muted); margin: 10px 0 0; min-height: 1.2em; }
-.site-status.error { color: var(--bad); }
