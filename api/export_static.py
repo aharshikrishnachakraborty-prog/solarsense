@@ -60,8 +60,14 @@ def export(out):
     # Every alert starts as "Open" in the public copy (ignore statuses changed on this laptop).
     config.ALERT_STATUS_FILE = Path(tempfile.mkdtemp()) / "alert_status.json"
 
+    # The API needs a login: use a throwaway account in a temporary users file (never the real one).
+    config.USERS_FILE = Path(tempfile.mkdtemp()) / "users.json"
+    from engine.create_users import set_user
+    set_user("exporter", "export-only")
+
     from api.main import app   # imported here so the temporary status file above is used
     with TestClient(app) as client:
+        client.post("/api/login", json={"username": "exporter", "password": "export-only"})
         ex = Exporter(client, out)
         info = ex.save("plants")
         for name in ["validation", "assumptions", "settings"]:

@@ -267,3 +267,24 @@ th.sortable:hover { color: var(--text); }
 }
 .card-head .toggle { margin-bottom: 12px; }
 
+
+/* ---------- Login page ---------- */
+.login-body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.login-card { width: 100%; max-width: 380px; }
+.login-card h1 { margin: 12px 0 4px; }
+.login-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+.login-brand svg { width: 32px; height: 32px; }
+#login-form { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; }
+#login-form label { font-size: 13px; color: var(--muted); }
+#login-form input { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text); font: inherit; }
+#login-form input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.btn-primary { margin-top: 6px; padding: 10px; border: 0; border-radius: 8px; background: var(--accent);
+  color: #1f2933; font-weight: 600; font: inherit; font-weight: 600; cursor: pointer; }
+.btn-primary:disabled { opacity: 0.6; cursor: wait; }
+.login-error { color: var(--bad); font-size: 13px; min-height: 1.2em; margin: 4px 0 0; }
+.login-demo { font-size: 12px; color: var(--muted); margin: 14px 0 0; }
+.user-box { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.link-btn { background: none; border: 0; color: var(--link); cursor: pointer; font: inherit; padding: 0; }
+
+.install-btn { width: auto; padding: 0 10px; font-size: 13px; white-space: nowrap; }

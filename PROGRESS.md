@@ -324,3 +324,15 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - Site Planner removed completely (page, API route, engine/site_estimator.py, engine/validate_site.py, tests, NASA/SITE config, metrics sections). NASA POWER is no longer used.
 - Validation **tab** removed only — the injected-fault validation (engine/validate.py, validate_weather.py), `/api/validation` and its metrics stay as evidence.
 - pytest: 93 passed; `python run_all.py --skip-validation` runs clean.
+
+## Login page (2026-10-28)
+- `web/login.html` + `js/login.js`; `api/auth.py` (login / logout / me + a guard on every page and API call).
+- Accounts in `data/users.json` (gitignored), salted PBKDF2 hashes, standard library only. Demo users created on first start (`operator` / `solar123`); `python -m engine.create_users NAME PASSWORD` adds more.
+- Sessions: HttpOnly cookie, 8 h, in memory (server restart = log in again).
+- GitHub Pages copy: browser-only demo login (not secure, says so).
+- pytest: 98 passed (new tests/test_auth.py).
+
+## Installable app (PWA) (2026-10-28)
+- `web/manifest.webmanifest`, `web/sw.js` (caches screens only, never plant data), icons in `web/icons/` (drawn by `python -m engine.make_icons`).
+- "⬇ Install app" button in the top bar (iPhone: Share → Add to Home Screen tip). Install files are reachable before login.
+- pytest: 99 passed.

@@ -17,3 +17,6 @@ data/processed/alert_status.json
 
 # Static GitHub Pages copy — built by the GitHub Action (python -m api.export_static), never committed
 site/
+
+# Login accounts (hashed passwords, local only)
+data/users.json

@@ -37,6 +37,27 @@ function applySavedTheme() {
 }
 applySavedTheme();   // run immediately so the page does not flash the wrong theme
 
+// Installable app (PWA): register the service worker (web/sw.js) and remember the browser's install offer.
+let installPrompt = null;
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => { /* app still works */ }));
+}
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();   // show OUR "Install app" button instead of the browser's mini bar
+  installPrompt = event;
+  window.dispatchEvent(new Event("solarsense-can-install"));
+});
+window.addEventListener("appinstalled", () => {
+  const button = document.getElementById("install-app");
+  if (button) button.hidden = true;
+});
+
+// Static demo copy has no server to check logins, so pages check the browser tab's memory instead.
+// (The live site is protected by the server: api/auth.py.) Not secure — for the demo only.
+if (STATIC_SITE && !window.location.pathname.endsWith("login.html") && !session.get("solarsense-user")) {
+  goToLogin();
+}
+
 const Layout = {
   state: { plant: null, date: null, plants: [], dates: [] },
 
@@ -55,8 +76,14 @@ const Layout = {
         <label for="date-select">Replay date</label>
         <select id="date-select" aria-label="Replay date"></select>
         <button id="theme-toggle" class="icon-btn" title="Switch light / dark theme" aria-label="Switch theme">◐</button>
+        <button id="install-app" class="icon-btn install-btn" type="button" hidden>⬇ Install app</button>
+        <span class="user-box"><span id="user-name"></span>
+          <button id="logout" class="link-btn" type="button">Log out</button></span>
       </div>`;
     document.getElementById("theme-toggle").addEventListener("click", Layout.toggleTheme);
+    document.getElementById("logout").addEventListener("click", Layout.logOut);
+    Layout.showUser();
+    Layout.setUpInstallButton();
     if (STATIC_SITE) {   // GitHub Pages copy: say clearly what visitors are looking at
       const note = document.createElement("p");
       note.className = "footer-note";
@@ -115,6 +142,46 @@ const Layout = {
     });
     if (onChange) onChange(state);
     return state;
+  },
+
+  /** "Signed in as operator" in the top bar (the static copy remembers the name in this tab only). */
+  async showUser() {
+    let username = STATIC_SITE ? session.get("solarsense-user") : null;
+    if (!STATIC_SITE) {
+      try { username = (await fetchJSON("/api/me")).username; } catch (e) { return; }
+    }
+    if (username) document.getElementById("user-name").textContent = `Signed in as ${username}`;
+  },
+
+  /** Forget the session (server cookie, or the static copy's tab memory) and go to the login page. */
+  async logOut() {
+    if (STATIC_SITE) {
+      try { window.sessionStorage.removeItem("solarsense-user"); } catch (e) { /* nothing saved */ }
+    } else {
+      try { await fetch("api/logout", { method: "POST" }); } catch (e) { /* offline: still leave */ }
+    }
+    window.location.href = "login.html";
+  },
+
+  /** Show "Install app" when the browser can install SolarSense; on iPhone explain the Share menu instead. */
+  setUpInstallButton() {
+    const button = document.getElementById("install-app");
+    const installed = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if (installed) return;   // already running as an installed app
+    if (installPrompt) button.hidden = false;
+    window.addEventListener("solarsense-can-install", () => { button.hidden = false; });
+    if (/iphone|ipad/i.test(navigator.userAgent)) {   // Safari has no install button: show a tip
+      button.hidden = false;
+      button.addEventListener("click", () => alert("To install: tap Share, then \"Add to Home Screen\"."));
+      return;
+    }
+    button.addEventListener("click", async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      button.hidden = true;
+    });
   },
 
   toggleTheme() {

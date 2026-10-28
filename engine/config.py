@@ -333,3 +333,17 @@ VALIDATION_WEATHER_FILE = PROCESSED_DIR / "validation_weather.parquet"
 # Heading of the model-card section validate_weather.py writes (the Phase 3 rebuild keeps it).
 MODEL_CARD_WEATHER_MARKER = "## Weather-aware fault detection (Phase W4)"
 
+
+# ---------------------------------------------------------------------------
+# Login (api/auth.py, engine/create_users.py)
+# ---------------------------------------------------------------------------
+# Accounts live in a local file (never committed). Passwords are stored only as a salted
+# PBKDF2 hash — the real password is never saved anywhere.
+USERS_FILE = DATA_DIR / "users.json"
+PASSWORD_ITERATIONS = 200_000       # more = slower to guess, still fast for one login
+SESSION_COOKIE = "solarsense_session"
+SESSION_HOURS = 8                   # one working shift, then log in again
+FAILED_LOGIN_DELAY_S = 0.5          # small pause after a wrong password slows down guessing
+# DEMO accounts so judges can try the login (shown on the login page). Created automatically
+# if users.json does not exist. Change them with: python -m engine.create_users NAME PASSWORD
+DEMO_USERS = {"operator": "solar123", "engineer": "solar123"}

@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from engine import config
+from tests.conftest import log_in
 from engine.metrics import load_metrics
 
 
@@ -17,6 +18,7 @@ def client():
         pytest.skip("Run the pipeline first (python run_all.py)")
     from api.main import app
     with TestClient(app) as test_client:
+        log_in(test_client)   # every page and API call needs a login
         yield test_client
 
 

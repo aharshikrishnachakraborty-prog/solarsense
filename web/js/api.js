@@ -70,6 +70,7 @@ async function fetchJSON(path, params = {}, options = {}) {
   }
   if (!response.ok) {
     if (STATIC_SITE) throw new Error(STATIC_MISSING_MESSAGE);
+    if (response.status === 401) goToLogin();   // session expired or never logged in
     let detail = `Request failed (${response.status}).`;
     try {
       const body = await response.json();
@@ -79,6 +80,12 @@ async function fetchJSON(path, params = {}, options = {}) {
   }
   const body = await response.json();
   return STATIC_SITE ? applyBrowserStatuses(body) : body;
+}
+
+/** Open the login page, coming back to this page afterwards. */
+function goToLogin() {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  window.location.href = `login.html?next=${encodeURIComponent(page + window.location.search)}`;
 }
 
 /** Send JSON to the API (used for changing an alert's status). */

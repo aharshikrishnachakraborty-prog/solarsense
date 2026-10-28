@@ -24,6 +24,10 @@ money (₹) lost — shown on a web dashboard that operators can act on.
 8. **Check it works:** `pytest` — every test should pass.
 9. **Start the website:** `uvicorn api.main:app --reload`
 10. **Open** http://localhost:8000 in your browser (needs internet the first time, for the chart library).
+    **Log in** with the demo account `operator` / `solar123` (created automatically on first start;
+    add your own with `python -m engine.create_users NAME PASSWORD`).
+    **Install it as an app:** click **⬇ Install app** in the top bar (Chrome/Edge, or Android), or on iPhone
+    Share → "Add to Home Screen". It then opens in its own window with the SolarSense sun icon.
     Press **Ctrl+C** in the terminal to stop the server.
 
 > macOS / Linux: use `python3.12 -m venv .venv` and `source .venv/bin/activate` in steps 3–4.
@@ -41,7 +45,7 @@ money (₹) lost — shown on a web dashboard that operators can act on.
 | **Alerts** | Filter/search/sort all alerts, "Why?" panel with evidence chart, Acknowledge / Resolve, CSV export |
 | **About** | How it works, data sources, assumptions, limitations, team |
 
-Also try **http://localhost:8000/docs** to call the API directly.
+Also try **http://localhost:8000/docs** to see the API (log in on the website first — the API needs the session cookie).
 
 ## How it works (one minute)
 
