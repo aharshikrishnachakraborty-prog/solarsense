@@ -1,7 +1,7 @@
 """Facts for the chat assistant: a day, week or whole-period summary of one plant.
 
 Every number here is computed by our code from the pipeline files. The assistant (Google Gemini) only
-turns these facts into sentences — it never calculates or invents numbers (CLAUDE.md rule 9).
+turns these facts into sentences — it never calculates or invents numbers.
 """
 
 import pandas as pd

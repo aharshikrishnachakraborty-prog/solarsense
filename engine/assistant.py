@@ -1,6 +1,6 @@
 """Chat assistant brain: sends the operator's question + our computed facts to Google Gemini (free tier).
 
-The AI only turns facts into sentences — every number comes from engine/period_summary.py (CLAUDE.md rule 9).
+The AI only turns facts into sentences — every number comes from engine/period_summary.py.
 The Gemini key is a secret: it is read from .env (GEMINI_API_KEY) and never written in code or sent to the browser.
 """
 

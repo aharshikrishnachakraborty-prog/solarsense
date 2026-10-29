@@ -111,4 +111,3 @@ own browser, and the data is the version committed to the repository (re-run `py
 - Every assumption (e.g. the ₹/kWh tariff — **still to be sourced by the team**) is listed in
   `reports/assumptions.md` and on the About page.
 - Results are reproducible: everything uses a fixed random seed (42).
-- Progress and decisions are logged in `PROGRESS.md`; project rules are in `CLAUDE.md`.

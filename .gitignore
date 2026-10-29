@@ -23,3 +23,17 @@ data/users.json
 
 # Local secrets (n8n webhook address)
 .env
+
+# Private team notes (kept locally, not in the repo)
+CLAUDE.md
+PROMPTS.md
+WEATHER_PROMPTS.md
+PROGRESS.md
+backups
+presentation/round1_ppt_prompt.md
+presentation/ZERO_TO_HERO.md
+presentation/explain_like_im_new.md
+presentation/judge_qa.md
+presentation/demo_script.md
+presentation/slide_outline.md
+presentation/plant_showcase.html
