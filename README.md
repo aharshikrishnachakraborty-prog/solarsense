@@ -1,4 +1,4 @@
-# SolarSense — AI Solar Plant Health Monitor
+# SolarSense — AI Solar Plant Health Monitor  .
 
 Meridian hackathon, problem **DEV-P01** (Application Development track).
 
