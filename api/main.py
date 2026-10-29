@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from api import auth
 from api.data_store import get_store
-from api.routes import alerts, plants, replay, reports, weather
+from api.routes import alerts, chat, plants, replay, reports, weather
 from engine import config
 from engine.create_users import ensure_demo_users
 
@@ -40,6 +40,7 @@ app.include_router(alerts.router)
 app.include_router(reports.router)
 app.include_router(replay.router)
 app.include_router(weather.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health", tags=["health"])

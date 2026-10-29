@@ -62,6 +62,21 @@ Also try **http://localhost:8000/docs** to see the API (log in on the website fi
    also on cloudy days, and test whether a weather-aware rule helps (it lost real faults, so it is off).
 7. The **API** serves the precomputed results; the **website** only displays them.
 
+## Chat assistant (optional, free Google Gemini key)
+
+The chat button (bottom right of every page) answers questions such as "weekly report" or "which inverters need
+attention?". Our code computes the facts (`/api/chat/facts`); Google Gemini only turns them into sentences and is
+told to use no other numbers. Without a key the chat simply says it is offline — everything else works the same.
+
+1. Go to **aistudio.google.com**, sign in with a Google account, click **Get API key** → **Create API key**, copy it.
+2. In the `solarsense` folder create a file named `.env` (no other name) containing one line:
+   `GEMINI_API_KEY=paste-your-key-here`
+3. Restart the server (`uvicorn api.main:app --reload`), log in, click the chat button.
+
+`.env` is ignored by git — never commit it or share the key. The free tier has daily limits, so the chat allows
+20 messages per minute per user. On the GitHub Pages copy the chat is switched off (a website without a server
+cannot keep a key secret).
+
 ## Project layout
 
 ```

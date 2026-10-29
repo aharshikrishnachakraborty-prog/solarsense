@@ -25,16 +25,15 @@ async function loadOverview(state) {
 function renderAll({ overview, series, attention, losses, weather }) {
   document.getElementById("takeaway").textContent = overview.takeaway;
   renderKpis(overview);
-  renderNotices(overview.data_quality_notices);
   renderWeatherMini(weather);
   renderDayChart(overview, series, weather);
   renderAttention(attention);
   renderLossChart(losses);
 }
 
-function kpiTile(label, value, compare, status = "", tip = "") {
+function kpiTile(label, value, compare, status = "") {
   return `<div class="card kpi ${status}">
-      <div class="kpi-label">${label}${tip ? infoTip(tip) : ""}</div>
+      <div class="kpi-label">${label}</div>
       <div class="kpi-value">${value}</div>
       <div class="kpi-compare">${compare}</div>
     </div>`;
@@ -44,42 +43,28 @@ function kpiTile(label, value, compare, status = "", tip = "") {
 const kwhValue = (value) => `${fmt.number(value)}<span class="unit">kWh</span>`;
 
 function renderKpis(o) {
-  const pr = o.performance_ratio;
-  const prBand = prStatus(pr) === "none" ? "" : prStatus(pr);
   const gap = o.actual_kwh - o.expected_kwh;
   const alerts = o.active_alerts_by_severity;
   const openCount = SEVERITIES.reduce((sum, level) => sum + (alerts[level] || 0), 0);
   const chips = SEVERITIES.filter((level) => alerts[level] > 0)
     .map((level) => `${severityBadge(`${alerts[level]} ${level}`)}`).join(" ");
-  const tariffTip = `ASSUMPTION: ₹${o.tariff_inr_per_kwh}/kWh. ${o.tariff_note}`;
 
   document.getElementById("kpis").innerHTML = [
     kpiTile("Actual energy", kwhValue(o.actual_kwh),
       `${gap >= 0 ? "+" : "−"}${fmt.kwh(Math.abs(gap))} vs expected`),
     kpiTile("Expected energy", kwhValue(o.expected_kwh), "for this day's sunlight & temperature"),
-    kpiTile(AVE_LABEL, fmt.pct(pr, 1), "actual ÷ expected energy (100% = as estimated)", prBand, AVE_TIP),
     kpiTile("Energy lost", kwhValue(o.fault_loss_kwh),
       o.at_risk_kwh > 0 ? `+ ${fmt.kwh(o.at_risk_kwh)} at risk (data gaps)` : "from detected faults",
       o.fault_loss_kwh > 0 ? "bad" : "ok"),
     kpiTile("Money lost", fmt.inr(o.fault_loss_inr),
-      `at ₹${o.tariff_inr_per_kwh}/kWh (assumed tariff — <a href="about.html">see About</a>)`,
-      o.fault_loss_inr > 0 ? "bad" : "ok", tariffTip),
+      `at ₹${o.tariff_inr_per_kwh}/kWh`,
+      o.fault_loss_inr > 0 ? "bad" : "ok"),
     kpiTile("Open alerts", fmt.number(openCount),
       openCount ? `<div class="chips">${chips}</div>` : "nothing open on this day",
       alerts.Critical > 0 ? "bad" : openCount ? "warn" : "ok"),
   ].join("");
 }
 
-/** Plant-wide data-quality notices (no energy lost): one small banner instead of alerts. */
-function renderNotices(notices) {
-  const box = document.getElementById("notices");
-  if (!notices || !notices.length) { box.hidden = true; return; }
-  box.hidden = false;
-  const first = notices[0].reason;
-  const short = first.length > 110 ? `${first.slice(0, first.lastIndexOf(" ", 107))}…` : first;   // cut at a word
-  box.innerHTML = `<strong>Data quality notice:</strong> ${notices.length} plant-wide sensor/data issue${notices.length > 1 ? "s" : ""} ` +
-    `(no energy lost) — ${escapeHTML(short)} <a href="about.html">Details on the About page →</a>`;
-}
 
 /** Weather mini-card: sky, sunshine score, hottest panel, natural (weather) vs fixable (fault) losses. */
 function renderWeatherMini(weather) {
@@ -90,7 +75,7 @@ function renderWeatherMini(weather) {
   const sky = SKY[d.dominant_sky] || { icon: "" };
   card.innerHTML = `
     <span class="wm-icon" id="wm-icon" aria-hidden="true">${sky.icon}</span>
-    <div class="wm-stat"><span class="kpi-label"><span id="wm-sky-label">Sky</span>${infoTip(SKY_TIP)}</span>
+    <div class="wm-stat"><span class="kpi-label"><span id="wm-sky-label">Sky</span></span>
       <strong id="wm-sky">${escapeHTML(d.dominant_sky || "–")} · ${fmt.number(d.sunshine_score)}/100</strong></div>
     <div class="wm-stat"><span class="kpi-label" id="wm-temp-label">Hottest panel</span>
       <strong id="wm-temp">${fmt.number(d.max_module_c)} °C</strong></div>
@@ -105,10 +90,7 @@ function renderDayChart(overview, series, weather = null) {
   const skyAt = weather ? Object.fromEntries(weather.points.map((p) => [p.timestamp, p.sky_label])) : {};
   const skyLabels = points.map((p) => (p.sky_label !== undefined ? p.sky_label : skyAt[p.timestamp] || null));
   const hasSky = skyLabels.some(Boolean);
-  const pr = overview.performance_ratio;
-  document.getElementById("day-chart-title").textContent = pr === null
-    ? "Actual vs expected output"
-    : `Plant made ${fmt.pct(pr)} of the output the weather allowed`;
+  document.getElementById("day-chart-title").textContent = "Actual vs expected output";
   Charts.draw("day-chart", {
     type: "line",
     data: {

@@ -1,0 +1,26 @@
+/* About page only: hero, audience cards, roadmap, folding sections, team cards. */
+
+.flow { width: 100%; height: auto; }
+.flow .box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+.flow .box.ai { stroke: var(--accent); stroke-width: 2.5; }
+.flow text { fill: var(--text); font-size: 13px; font-weight: 600; text-anchor: middle; }
+.flow text.sub { fill: var(--muted); font-size: 11px; font-weight: 400; }
+.flow .arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+.flow #arrowhead path { fill: var(--muted); }
+.about-text p { margin: 0 0 10px; max-width: 75ch; }
+.section { margin-top: var(--gap); }
+
+/* Headline numbers under the summary */
+.hero-stats { margin: 18px 0 8px; }
+.small { font-size: 12px; }
+
+/* Folding sections (details/summary) for the long reference material */
+details.card > summary { cursor: pointer; list-style: none; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary h2 { display: inline; margin: 0; }
+details.card > summary::after { content: "+"; float: right; color: var(--muted); font-size: 18px; line-height: 1; }
+details.card[open] > summary::after { content: "\2212"; }
+details.card[open] > summary { margin-bottom: 12px; }
+
+.team { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.member { display: flex; flex-direction: column; gap: 2px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }

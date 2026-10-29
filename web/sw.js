@@ -3,11 +3,11 @@
 // Plant data (/api/... and the static copy's static-api/...) is NEVER stored here: always fresh from the server.
 // Change CACHE_VERSION after editing the website so installed apps pick up the new files.
 
-const CACHE_VERSION = "solarsense-v1";
+const CACHE_VERSION = "solarsense-v4";
 const APP_SHELL = [
   "index.html", "plant.html", "weather.html", "inverter.html", "alerts.html", "about.html", "login.html",
-  "css/style.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
-  "js/mode.js", "js/api.js", "js/layout.js", "js/charts.js",
+  "css/style.css", "css/about.css", "css/chat.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
+  "js/mode.js", "js/api.js", "js/layout.js", "js/charts.js", "js/chat.js",
 ];
 
 self.addEventListener("install", (event) => {

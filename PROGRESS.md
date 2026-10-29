@@ -336,3 +336,18 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - `web/manifest.webmanifest`, `web/sw.js` (caches screens only, never plant data), icons in `web/icons/` (drawn by `python -m engine.make_icons`).
 - "⬇ Install app" button in the top bar (iPhone: Share → Add to Home Screen tip). Install files are reachable before login.
 - pytest: 99 passed.
+
+## About page redesign (2026-10-29)
+- `web/about.html` rewritten: computed headline numbers (losses, alerts, planted-fault recall, yearly projection from the API), fault-type table, data needed for a new plant, technology; sources / limitations / assumptions fold away. Styles in `web/css/about.css`.
+- Old page kept in `backups/about_before_upgrade.html` and git tag `before-about-upgrade`.
+
+## Chat assistant (2026-10-29)
+- Chat button on every page (`web/js/chat.js`, `web/css/chat.css`, loaded by `layout.js`).
+- `engine/period_summary.py` computes day / week / whole-period facts; `engine/assistant.py` sends question + facts
+  + rules to Google Gemini (free tier, `gemini-2.5-flash`, standard library only); `api/routes/chat.py`:
+  `GET /api/chat/facts`, `POST /api/chat` (offline fallback, 20 msgs/min limit, remembers last 6 turns).
+- Key: `GEMINI_API_KEY` in `.env` (gitignored). No key = chat says "offline". Off on the GitHub Pages copy.
+- First built with n8n, switched to calling Gemini directly (free, one less service to fail in the demo).
+- Links in replies: each answer ends with "Open the <Page> page" (linked, keeps plant + date); inverter IDs the server
+  confirms are real (`inverters` in the /api/chat answer) link to that inverter's page. Chat stays open across pages.
+- pytest: 105 passed (new tests/test_chat.py).

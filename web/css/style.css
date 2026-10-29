@@ -288,3 +288,30 @@ th.sortable:hover { color: var(--text); }
 .link-btn { background: none; border: 0; color: var(--link); cursor: pointer; font: inherit; padding: 0; }
 
 .install-btn { width: auto; padding: 0 10px; font-size: 13px; white-space: nowrap; }
+
+/* ---------- Weather & Energy: "where did the energy go?" stacked bar ---------- */
+.waterfall-stack { display: flex; flex-direction: column; height: 420px; padding: 4px 0; }
+.ws-top { display: flex; align-items: stretch; height: 34px; }
+.ws-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.ws-row { display: flex; align-items: stretch; flex-basis: 0; min-height: 34px; }
+.ws-row:has(.ws-fault_loss) { min-height: 64px; }
+.ws-seg { width: 34%; max-width: 170px; flex-shrink: 0; }
+.ws-label { display: flex; align-items: center; padding-left: 14px; font-size: 13px; line-height: 1.3; }
+.ws-name { font-weight: 600; }
+.ws-pct { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.ws-potential { background: #f59e0b; border-radius: 6px 6px 0 0; }
+.ws-cloud_loss { background: #7a8794; }
+.ws-heat_loss { background: #fb923c; }
+.ws-fault_loss { background: var(--bad); box-shadow: 0 0 0 2px #fff, 0 0 10px 2px rgba(220, 38, 38, .55); position: relative; z-index: 1; }
+.ws-unknown { background: #cbd5e1; }
+.ws-actual { background: #84cc16; border-radius: 0 0 6px 6px; }
+.ws-l-potential { color: #b45309; font-weight: 600; }
+.ws-l-cloud_loss { color: #64748b; }
+.ws-l-heat_loss { color: #c2410c; }
+.ws-l-actual { color: #4d7c0f; font-weight: 600; }
+.ws-callout { display: inline-block; border: 1px solid var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); color: var(--text);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+.ws-callout strong { display: block; color: var(--bad); font-size: 13px; }
+[data-theme="dark"] .ws-fault_loss { box-shadow: 0 0 0 2px #0f141b, 0 0 10px 2px rgba(248, 113, 113, .55); }
+[data-theme="dark"] .ws-l-potential { color: #fbbf24; }
+[data-theme="dark"] .ws-l-actual { color: #a3e635; }

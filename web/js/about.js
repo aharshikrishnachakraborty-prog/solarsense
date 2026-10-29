@@ -24,4 +24,33 @@ async function loadAbout(state) {
   }
 }
 
-Layout.init("about").then(loadAbout);
+/** Headline numbers at the top: every one comes from the computed results (losses, alerts, validation). */
+async function loadHeadline(state) {
+  try {
+    // Per-plant losses are added up here because the static demo copy saves them per plant.
+    const [validation, alerts, ...losses] = await Promise.all([
+      fetchJSON("/api/validation"), fetchJSON("/api/alerts", { sort: "severity" }),
+      ...state.plants.map((plant) => fetchJSON("/api/losses", { plant }))]);
+    const sum = (key) => losses.reduce((total, plant) => total + plant.total[key], 0);
+    const set = (id, html) => { document.getElementById(id).innerHTML = html; };
+
+    set("stat-loss", `${fmt.number(sum("fault_loss_kwh"))}<span class="unit">kWh</span>`);
+    set("stat-loss-inr", `≈ ${fmt.inr(sum("fault_loss_inr"))} in ${losses[0].days} days`);
+    const critical = alerts.alerts.filter((a) => a.severity === "Critical").length;
+    set("stat-alerts", fmt.number(alerts.count));
+    set("stat-alerts-sub", `${fmt.number(critical)} of them critical`);
+    set("stat-year", fmt.inr(sum("projected_annual_fault_loss_inr")));
+
+    const trip = validation.by_fault && validation.by_fault.trip;
+    if (trip) {
+      set("stat-trip", `${fmt.number(trip.recall_pct)}<span class="unit">%</span>`);
+      set("stat-trip-sub", `of ${trip.injections} planted · ${trip.false_alarms} false alarms · ~${fmt.number(trip.avg_delay_minutes)} min to alert`);
+    }
+    set("stat-note", `Measured on ${state.plants.length} real Indian solar plants (Kaggle "Solar Power Generation Data"). ` +
+      `${escapeHTML(losses[0].tariff_note)}`);
+  } catch (error) {
+    showError(error.message);
+  }
+}
+
+Layout.init("about").then((state) => Promise.all([loadAbout(state), loadHeadline(state)]));

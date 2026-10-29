@@ -42,6 +42,9 @@ Target users: plant operators, O&M (operations & maintenance) engineers.
 ## 3. HARD RULES (never break these)
 
 1. **No paid APIs, no paid services, no API keys.** Runs free on a normal laptop (8 GB RAM).
+   *Exception (team decision, 2026-10-29):* the optional chat assistant uses a FREE Google Gemini API key,
+   kept only in `.env` (gitignored), never in code or the browser.
+   The whole app must keep working when the assistant is off.
 2. **Never invent numbers.** Every number shown in the UI or slides must be computed by our code and saved in
    `reports/metrics.json` or served by the API from computed files. Assumptions are labelled `ASSUMPTION`
    in code, UI (small ⓘ note) and `reports/assumptions.md`.

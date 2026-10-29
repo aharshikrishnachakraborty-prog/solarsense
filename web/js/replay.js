@@ -74,7 +74,7 @@ const Replay = {
     const weatherNow = [sky, panel].filter(Boolean).join(", ");
     document.getElementById("takeaway").innerHTML =
       `<span class="live-dot"></span>Live replay · ${fmt.time(t.timestamp)}${weatherNow ? ` · ${weatherNow}` : ""} — plant ` +
-      `has made ${fmt.pct(t.performance_ratio)} of expected so far; ${fmt.kwh(t.fault_loss_kwh)} lost to faults so far.`;
+      `has made ${fmt.kwh(t.actual_kwh)} so far; ${fmt.kwh(t.fault_loss_kwh)} lost to faults so far.`;
     Replay.showWeather(t);
     const chart = Charts.instances["day-chart"];
     const upTo = (key) => ticks.map((p, j) => (j <= i ? p[key] : null));

@@ -20,3 +20,6 @@ site/
 
 # Login accounts (hashed passwords, local only)
 data/users.json
+
+# Local secrets (n8n webhook address)
+.env

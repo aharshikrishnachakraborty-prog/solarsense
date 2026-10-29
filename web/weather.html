@@ -30,7 +30,7 @@
       <div class="card">
         <h2 id="sky-title">Sunlight vs a clear sky</h2>
         <p class="card-sub">The coloured band shows the sky every 15 minutes. Grey shading = sunlight blocked by clouds
-          (gap between the clear-sky curve and real sunlight) <span id="sky-tip"></span></p>
+          (gap between the clear-sky curve and real sunlight).</p>
         <div class="chart-box tall"><canvas id="sky-chart" aria-label="Sunlight vs clear sky and power chart"></canvas></div>
         <div id="sky-legend" class="legend sky-legend"></div>
       </div>
@@ -43,8 +43,8 @@
           </div>
         </div>
         <p class="card-sub">From what a clear sky could give (panels at 25 °C) down to the energy actually made.
-          <span class="nat">Grey/blue = natural</span> (nobody can fix clouds or heat), <span class="fix">red = fixable</span> faults.</p>
-        <div class="chart-box"><canvas id="waterfall-chart" aria-label="Energy waterfall chart"></canvas></div>
+          <span class="nat">Grey/orange = natural</span> (nobody can fix clouds or heat), <span class="fix">red = fixable</span> faults.</p>
+        <div id="waterfall-stack" class="waterfall-stack" role="img" aria-label="Where the energy went: one bar split into clouds, heat, faults and actual energy"></div>
       </div>
     </section>
 
@@ -58,7 +58,7 @@
       <div class="card">
         <h2 id="scatter-title">Hotter panels make less power</h2>
         <p class="card-sub">Healthy readings in good sunlight: efficiency (power ÷ sunlight) against panel temperature,
-          with a straight-line fit <span id="scatter-tip"></span></p>
+          with a straight-line fit.</p>
         <div class="chart-box small"><canvas id="scatter-chart" aria-label="Panel temperature vs efficiency chart"></canvas></div>
       </div>
     </section>

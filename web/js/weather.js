@@ -1,10 +1,6 @@
 // Weather & Energy page: the day's sky (read from sunlight), heat, the energy waterfall, the temperature
 // effect and a calendar of all days. Every number comes from the API — nothing is calculated here.
 
-const WATERFALL_NAMES = {
-  clear_sky_potential: "Clear-sky potential", cloud_loss: "− Clouds", heat_loss: "− Heat", fault_loss: "− Faults",
-  not_measured: "− Not measured", other: "− Other", actual: "= Actual",
-};
 const WATERFALL_TIPS = {
   clear_sky_potential: "What the plant would make under a clear sky with panels at 25 °C.",
   cloud_loss: "Natural: sunlight blocked by clouds. Nobody can fix it.",
@@ -36,12 +32,12 @@ async function loadWeather(state) {
 
 function renderWeather({ day, calendar, temperature, period }) {
   document.getElementById("takeaway").textContent = day.takeaway;
-  document.getElementById("sky-tip").innerHTML = infoTip(`${SKY_TIP} ${day.note}`);
   document.getElementById("hot-threshold").textContent = fmt.number(day.hot_module_temp_c);
   renderKpis(day);
   renderSkyChart(day);
-  renderWaterfall(waterfallMode === "day" ? { ...day, steps: day.waterfall, label: fmt.date(day.date) }
-    : { ...period, label: "Whole period" });
+  renderWaterfall(waterfallMode === "day"
+    ? { ...day, steps: day.waterfall, label: fmt.date(day.date), fixable_inr: day.day.fault_loss_inr }
+    : { ...period, label: "Whole period", fixable_inr: period.fixable_loss_inr });
   renderTempChart(day);
   renderScatter(temperature);
   renderCalendar(calendar, day.date);
@@ -53,17 +49,17 @@ const step = (steps, part) => steps.find((s) => s.part === part);
 function renderKpis(data) {
   const d = data.day;
   const clouds = step(data.waterfall, "cloud_loss"), faults = step(data.waterfall, "fault_loss");
-  const tile = (label, value, compare, status = "", tip = "") => `<div class="card kpi ${status}">
-      <div class="kpi-label">${label}${tip ? infoTip(tip) : ""}</div><div class="kpi-value">${value}</div>
+  const tile = (label, value, compare, status = "") => `<div class="card kpi ${status}">
+      <div class="kpi-label">${label}</div><div class="kpi-value">${value}</div>
       <div class="kpi-compare">${compare}</div></div>`;
   document.getElementById("kpis").innerHTML = [
     tile("Sky", `${SKY[d.dominant_sky] ? SKY[d.dominant_sky].icon : ""} ${escapeHTML(d.dominant_sky || "–")}`,
-      `sunshine score ${fmt.number(d.sunshine_score)}/100`, "", SKY_TIP),
+      `sunshine score ${fmt.number(d.sunshine_score)}/100`),
     tile("Hottest panel", `${fmt.number(d.max_module_c)}<span class="unit">°C</span>`,
       `at ${fmt.time(d.max_module_time)} · air up to ${fmt.number(d.max_ambient_c)} °C`, d.hot_hours > 0 ? "warn" : ""),
     tile("Clouds cost", kwhTile(clouds.kwh), `${fmt.number(clouds.pct_of_potential)}% of clear-sky potential · natural`),
     tile("Heat cost", kwhTile(d.heat_loss_kwh), `${fmt.number(d.heat_loss_pct, 1)}% of 25 °C energy · natural`),
-    tile("Faults cost", kwhTile(faults.kwh), `${fmt.inr(d.fault_loss_inr)} · fixable (${TARIFF_LABEL})`,
+    tile("Faults cost", kwhTile(faults.kwh), `${fmt.inr(d.fault_loss_inr)} · fixable`,
       faults.kwh > 0 ? "bad" : "ok"),
   ].join("");
 }
@@ -104,38 +100,36 @@ function renderSkyChart(data) {
   });
 }
 
-function renderWaterfall({ steps, label, natural_loss_kwh: natural, fixable_loss_kwh: fixable }) {
-  // Floating bars: each loss hangs from where the previous step ended (the API gives every value).
-  let level = 0;
-  const bars = steps.map((s) => {
-    if (s.part === "clear_sky_potential" || s.part === "actual") { level = s.kwh; return [0, s.kwh]; }
-    const bar = [level - s.kwh, level];
-    level -= s.kwh;
-    return bar;
-  });
-  const colors = { potential: Charts.color("--accent"), natural: "#7a8794", fixable: Charts.color("--bad"),
-    unknown: "#cbd5e1", actual: Charts.color("--chart-actual") };
+/** One stacked bar = the clear-sky potential, cut into where the energy went (top: losses, bottom: actual). */
+function renderWaterfall({ steps, label, natural_loss_kwh: natural, fixable_loss_kwh: fixable, fixable_inr }) {
   document.getElementById("waterfall-title").textContent =
     `${label}: clouds + heat cost ${fmt.kwh(natural)} (natural), faults ${fmt.kwh(fixable)} (fixable)`;
-  Charts.draw("waterfall-chart", {
-    type: "bar",
-    data: {
-      labels: steps.map((s) => WATERFALL_NAMES[s.part]),
-      datasets: [{ label: "Energy (kWh)", data: bars, borderSkipped: false, borderRadius: 3,
-        backgroundColor: steps.map((s) => (s.part === "heat_loss" ? "#6b9bd1" : colors[s.kind])) }],
-    },
-    options: {
-      scales: { x: Charts.axis(""), y: Charts.axis("Energy (kWh)", { beginAtZero: true }) },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: {
-          label: (ctx) => { const s = steps[ctx.dataIndex];
-            return `${fmt.kwh(s.kwh)} (${fmt.number(s.pct_of_potential, 1)}% of potential)`; },
-          afterLabel: (ctx) => WATERFALL_TIPS[steps[ctx.dataIndex].part],
-        } },
-      },
-    },
-  });
+  const potential = steps.find((s) => s.part === "clear_sky_potential");
+  // "Not measured" and "Other" are both unknown: shown as one small slice. Negative "other" is left out.
+  const unknown = steps.filter((s) => s.kind === "unknown" && s.kwh > 0)
+    .reduce((sum, s) => ({ kwh: sum.kwh + s.kwh, pct: sum.pct + s.pct_of_potential }), { kwh: 0, pct: 0 });
+  const slices = [
+    ...["cloud_loss", "heat_loss", "fault_loss"].map((part) => steps.find((s) => s.part === part)),
+    { part: "unknown", kwh: unknown.kwh, pct_of_potential: unknown.pct },
+    steps.find((s) => s.part === "actual"),
+  ].filter((s) => s && s.kwh > 0);
+  const names = { cloud_loss: "Cloud cost", heat_loss: "Heat cost", fault_loss: "Fault cost",
+    unknown: "Not measured / other", actual: "Actual energy generated" };
+  const tips = { ...WATERFALL_TIPS, unknown: `${WATERFALL_TIPS.not_measured} ${WATERFALL_TIPS.other}` };
+
+  const rows = slices.map((s) => {
+    const share = `${fmt.number(s.pct_of_potential, 1)}%`;
+    const text = s.part === "fault_loss"
+      ? `<span class="ws-callout"><strong>Fixable loss: ${fmt.kwh(s.kwh)} (${fmt.inr(fixable_inr)})</strong>
+         caused by faults our alerts found</span>`
+      : `<span class="ws-name">${names[s.part]}:</span> ${fmt.kwh(s.kwh)} <span class="ws-pct">${share}</span>`;
+    return `<div class="ws-row" style="flex-grow: ${Math.max(s.pct_of_potential, 4)}" title="${escapeHTML(tips[s.part])}">
+        <div class="ws-seg ws-${s.part}"></div><div class="ws-label ws-l-${s.part}"><span>${text}</span></div></div>`;
+  }).join("");
+  document.getElementById("waterfall-stack").innerHTML = `
+    <div class="ws-top"><div class="ws-seg ws-potential"></div>
+      <div class="ws-label ws-l-potential">100% clear-sky potential (${fmt.kwh(potential.kwh)})</div></div>
+    <div class="ws-body">${rows}</div>`;
 }
 
 function renderTempChart(data) {
@@ -168,11 +162,8 @@ function renderTempChart(data) {
 }
 
 function renderScatter(t) {
-  const [low, high] = t.ci95_pct_per_c;
   document.getElementById("scatter-title").textContent =
     `Every +1 °C costs ~${fmt.number(Math.abs(t.coefficient_pct_per_c), 2)}% power (Plant ${t.plant})`;
-  document.getElementById("scatter-tip").innerHTML = infoTip(`95% range ${low} to ${high} %/°C (typical silicon `
-    + `${t.typical_range_pct_per_c[0]} to ${t.typical_range_pct_per_c[1]}). ${t.verdict}`);
   const line = t.fit_line;
   const lineAt = (temp) => line.efficiency_at_25c_pct + line.slope_pct_points_per_c * (temp - t.reference_panel_temp_c);
   Charts.draw("scatter-chart", {

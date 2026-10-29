@@ -84,6 +84,7 @@ const Layout = {
     document.getElementById("logout").addEventListener("click", Layout.logOut);
     Layout.showUser();
     Layout.setUpInstallButton();
+    Layout.loadAssistant();
     if (STATIC_SITE) {   // GitHub Pages copy: say clearly what visitors are looking at
       const note = document.createElement("p");
       note.className = "footer-note";
@@ -182,6 +183,22 @@ const Layout = {
       installPrompt = null;
       button.hidden = true;
     });
+  },
+
+  /** Add the chat assistant (web/js/chat.js) to every page, without editing each HTML file. */
+  loadAssistant() {
+    const style = document.createElement("link");
+    style.rel = "stylesheet";
+    style.href = "css/chat.css";
+    document.head.appendChild(style);
+    const load = (src) => new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.body.appendChild(script);
+    });
+    load("js/chat.js").then(() => Chat.mount()).catch(() => {});
   },
 
   toggleTheme() {

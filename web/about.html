@@ -11,31 +11,31 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    .flow { width: 100%; height: auto; }
-    .flow .box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
-    .flow .box.ai { stroke: var(--accent); stroke-width: 2.5; }
-    .flow text { fill: var(--text); font-size: 13px; font-weight: 600; text-anchor: middle; }
-    .flow text.sub { fill: var(--muted); font-size: 11px; font-weight: 400; }
-    .flow .arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
-    .flow #arrowhead path { fill: var(--muted); }
-    .about-text p { margin: 0 0 10px; max-width: 75ch; }
-  </style>
+  <link rel="stylesheet" href="css/about.css">
 </head>
 <body>
   <header id="topbar"></header>
 
   <main class="page about-text">
-    <h1>About SolarSense</h1>
-    <p class="muted">AI solar plant health monitor — hackathon project for Meridian problem DEV-P01 (Application Development track).</p>
-
     <section class="card">
-      <h2>The problem</h2>
-      <p>Solar plant operators usually find out that a panel string or an inverter is underperforming <strong>only after the losses have piled up</strong> — often at the end of the month, when the energy bill looks low.</p>
-      <p>SolarSense compares what every inverter <strong>actually</strong> produced with what it <strong>should</strong> have produced for the weather at that moment, flags likely faults with a plain-English reason, and estimates the energy and money lost — so the maintenance team knows what to fix first.</p>
+      <h1>About SolarSense</h1>
+      <p>SolarSense monitors a solar plant at inverter level. For every 15-minute reading it predicts the power each inverter should produce for the measured sunlight and panel temperature, compares it with the actual output, and raises an alert when the gap points to a fault. Each alert states the reason, the evidence, the energy and money lost, and the recommended action.</p>
+      <!-- Filled in by js/about.js from the computed results (never typed in by hand). -->
+      <div class="grid kpis hero-stats">
+        <div class="card kpi bad"><div class="kpi-label">Energy lost to faults found</div><div class="kpi-value" id="stat-loss">–</div><div class="kpi-compare" id="stat-loss-inr"><span class="skeleton"></span></div></div>
+        <div class="card kpi warn"><div class="kpi-label">Faults flagged</div><div class="kpi-value" id="stat-alerts">–</div><div class="kpi-compare" id="stat-alerts-sub"><span class="skeleton"></span></div></div>
+        <div class="card kpi ok"><div class="kpi-label">Planted trips caught</div><div class="kpi-value" id="stat-trip">–</div><div class="kpi-compare" id="stat-trip-sub"><span class="skeleton"></span></div></div>
+        <div class="card kpi"><div class="kpi-label">Projected per year if unfixed</div><div class="kpi-value" id="stat-year">–</div><div class="kpi-compare">ESTIMATE, from the days we have</div></div>
+      </div>
+      <p class="muted small" id="stat-note">Results on the demo data: two Indian solar plants (Kaggle "Solar Power Generation Data").</p>
     </section>
 
-    <section class="card" style="margin-top: var(--gap)">
+    <section class="card section">
+      <h2>Problem addressed</h2>
+      <p>Plant output is usually reviewed as a daily or monthly total, so a tripped inverter or a weak string can go unnoticed until the losses show up on the bill. Low output alone is not enough to act on: it has to be separated into what the weather caused and what a technician can fix.</p>
+    </section>
+
+    <section class="card section">
       <h2>How it works</h2>
       <svg class="flow" viewBox="0 0 1040 250" role="img" aria-label="Data flows from sensors through cleaning, the expected-output AI model, fault rules and peer comparison, and the loss estimator, to the alerts API and the dashboard.">
         <defs><marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z"/></marker></defs>
@@ -62,37 +62,80 @@
         <text class="sub" x="900" y="156" style="text-anchor: start">planted faults</text>
         <path class="arrow" d="M895 135 C 870 110, 860 95, 852 85"/>
       </svg>
-      <p class="muted">The pipeline computes everything in advance; the website only displays results. The AI never decides alone — clear rules raise every alert and explain why.</p>
+      <p class="muted">The pipeline computes everything in advance; the website only displays results. The AI never decides alone: clear rules raise every alert and explain why.</p>
+    </section>
+
+    <section class="card section">
+      <h2>What it detects</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fault type</th><th>How it is detected</th><th>Likely cause</th><th>Recommended action</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Inverter trip</strong></td><td>Strong sunlight but AC output near zero for several readings</td><td>Inverter fault, grid trip</td><td>Send a technician to restart / inspect</td></tr>
+            <tr><td><strong>Underperformance</strong></td><td>Output well below expected for a sustained period and below neighbouring inverters</td><td>Failed string, shading, wiring</td><td>Inspect strings and connectors</td></tr>
+            <tr><td><strong>Degradation / soiling</strong></td><td>Daily performance ratio trending down relative to peers</td><td>Dust, ageing modules</td><td>Schedule cleaning</td></tr>
+            <tr><td><strong>Data gap</strong></td><td>Readings missing during daylight</td><td>Logger or network failure</td><td>Check communication link</td></tr>
+            <tr><td><strong>Overheating</strong></td><td>Panel temperature far above ambient with reduced efficiency</td><td>Poor ventilation, hotspots</td><td>Thermal inspection</td></tr>
+            <tr><td><strong>Sensor / data issue</strong></td><td>Physically impossible values (e.g. DC-to-AC ratio)</td><td>Miscalibrated sensor</td><td>Recalibrate sensor</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small">Losses are split into natural (clouds, heat) and fixable (faults), so weather is not mistaken for a fault. Exact thresholds are listed under Assumptions.</p>
     </section>
 
     <section class="grid grid-main">
       <div class="card">
-        <h2>Data sources and licences</h2>
-        <ul class="list">
-          <li><strong>Kaggle — "Solar Power Generation Data"</strong> by anikannal: two solar plants in India, 15-minute readings, May–June 2020.
-            <div class="list-meta">Licence: see the dataset page on Kaggle. <em>TODO(team): confirm and write the exact licence here.</em> Plant locations (GPS) are not in the dataset.</div></li>
-          <li><strong>Chart.js</strong> — charts on this website (MIT licence).</li>
-          <li><strong>Python libraries</strong>: pandas, NumPy, scikit-learn, FastAPI and others (open-source).</li>
-        </ul>
+        <h2>Data required for a new plant</h2>
+        <table>
+          <tbody>
+            <tr><td><strong>Inverter readings</strong></td><td>Timestamp, inverter ID, DC power, AC power (15-minute interval or finer)</td></tr>
+            <tr><td><strong>Weather sensor</strong></td><td>Irradiation and module temperature (ambient optional)</td></tr>
+            <tr><td><strong>Configuration</strong></td><td>Tariff (₹/kWh), alert thresholds, plant names in <code>engine/config.py</code></td></tr>
+            <tr><td><strong>History</strong></td><td>A few weeks of readings; the model is trained on the plant's own data</td></tr>
+          </tbody>
+        </table>
       </div>
       <div class="card">
-        <h2>Limitations (honest)</h2>
-        <ul id="limitations" class="list muted">
-          <li>SolarSense is an installable app (PWA): one code base runs on laptop and phone. Plant data is never stored offline — it always comes fresh from the engine.</li>
-          <li>Login uses DEMO accounts: passwords are stored only as salted hashes, sessions last 8 hours and end when the server restarts. On the static demo copy the login is for show only.</li>
-          <li id="lim-days">Only a few weeks of data from one season (May–June); accuracy in winter or monsoon is unknown.</li>
-          <li>One weather sensor per plant: a cloud over one corner of a plant can look like a fault there. Comparing each inverter with its neighbours reduces this.</li>
-          <li>No cloud sensor and no GPS: the sky (clear → overcast) is read from the sunlight against a clear-sky curve learned from the brightest days — an estimate, not a measurement. The temperature effect is measured from our data; for Plant 2 it is weak evidence.</li>
-          <li>No official fault labels exist, so we validated with faults we planted ourselves (results in reports/metrics.json → validation).</li>
-          <li>Plant 1's DC power was rescaled because the raw values were physically impossible (see assumptions below).</li>
-          <li>The ₹ figures use an assumed tariff (configurable) until the team cites a sourced one — see Assumptions below.</li>
-          <li id="lim-small">Small underperformance is usually not caught, by design, to avoid false alarms.</li>
-        </ul>
+        <h2>Technology</h2>
+        <table>
+          <tbody>
+            <tr><td><strong>Model</strong></td><td>Random Forest, checked against a physics baseline; time-based train/test split</td></tr>
+            <tr><td><strong>Detection</strong></td><td>Rules on residuals plus peer comparison</td></tr>
+            <tr><td><strong>Backend</strong></td><td>Python, pandas, scikit-learn, FastAPI</td></tr>
+            <tr><td><strong>Frontend</strong></td><td>HTML, CSS, JavaScript, Chart.js; installable as an app</td></tr>
+            <tr><td><strong>Cost</strong></td><td>Open-source only; runs on a standard laptop</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section class="card" style="margin-top: var(--gap)">
-      <h2>Assumptions</h2>
+    <details class="card section">
+      <summary><h2>Data sources and licences</h2></summary>
+      <ul class="list">
+        <li><strong>Kaggle — "Solar Power Generation Data"</strong> by anikannal: two solar plants in India, 15-minute readings, May–June 2020.
+          <div class="list-meta">Licence: see the dataset page on Kaggle. <em>TODO(team): confirm and write the exact licence here.</em> Plant locations (GPS) are not in the dataset.</div></li>
+        <li><strong>Chart.js</strong>: charts on this website (MIT licence).</li>
+        <li><strong>Python libraries</strong>: pandas, NumPy, scikit-learn, FastAPI and others (open-source).</li>
+      </ul>
+    </details>
+
+    <details class="card section">
+      <summary><h2>Limitations</h2></summary>
+      <ul id="limitations" class="list muted">
+        <li>SolarSense is an installable app (PWA): one code base runs on laptop and phone. Plant data is never stored offline — it always comes fresh from the engine.</li>
+        <li>Login uses DEMO accounts: passwords are stored only as salted hashes, sessions last 8 hours and end when the server restarts. On the static demo copy the login is for show only.</li>
+        <li id="lim-days">Only a few weeks of data from one season (May–June); accuracy in winter or monsoon is unknown.</li>
+        <li>One weather sensor per plant: a cloud over one corner of a plant can look like a fault there. Comparing each inverter with its neighbours reduces this.</li>
+        <li>No cloud sensor and no GPS: the sky (clear → overcast) is read from the sunlight against a clear-sky curve learned from the brightest days — an estimate, not a measurement. The temperature effect is measured from our data; for Plant 2 it is weak evidence.</li>
+        <li>No official fault labels exist, so we validated with faults we planted ourselves (results in reports/metrics.json → validation).</li>
+        <li>Plant 1's DC power was rescaled because the raw values were physically impossible (see assumptions below).</li>
+        <li>The ₹ figures use an assumed tariff (configurable) until the team cites a sourced one — see Assumptions below.</li>
+        <li id="lim-small">Small underperformance is usually not caught, by design, to avoid false alarms.</li>
+      </ul>
+    </details>
+
+    <details class="card section">
+      <summary><h2>Assumptions</h2></summary>
       <p class="card-sub">Everything we could not measure directly. In the rest of the dashboard these are marked with ⓘ.</p>
       <div class="table-wrap">
         <table>
@@ -100,18 +143,16 @@
           <tbody id="assumptions"><tr><td colspan="4"><div class="skeleton"></div></td></tr></tbody>
         </table>
       </div>
-    </section>
+    </details>
 
-    <section class="card" style="margin-top: var(--gap)">
+    <section class="card section">
       <h2>Team</h2>
-      <table>
-        <tbody>
-          <tr><td>[Name — TODO]</td><td>P1 · Data &amp; problem</td></tr>
-          <tr><td>[Name — TODO]</td><td>P2 · AI model &amp; fault detection</td></tr>
-          <tr><td>[Name — TODO]</td><td>P3 · Losses, validation &amp; API</td></tr>
-          <tr><td>[Name — TODO]</td><td>P4 · Web dashboard &amp; pitch</td></tr>
-        </tbody>
-      </table>
+      <div class="grid team">
+        <div class="member"><strong>[Name — TODO]</strong><span class="muted">P1 · Data &amp; problem</span></div>
+        <div class="member"><strong>[Name — TODO]</strong><span class="muted">P2 · AI model &amp; fault detection</span></div>
+        <div class="member"><strong>[Name — TODO]</strong><span class="muted">P3 · Losses, validation &amp; API</span></div>
+        <div class="member"><strong>[Name — TODO]</strong><span class="muted">P4 · Web dashboard &amp; pitch</span></div>
+      </div>
     </section>
   </main>
 

@@ -4,6 +4,7 @@ Every other file imports its settings from here, so a number only ever
 needs to be changed in one place. Fault-detection thresholds are added in Phase 4.
 """
 
+import os
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -347,3 +348,28 @@ FAILED_LOGIN_DELAY_S = 0.5          # small pause after a wrong password slows d
 # DEMO accounts so judges can try the login (shown on the login page). Created automatically
 # if users.json does not exist. Change them with: python -m engine.create_users NAME PASSWORD
 DEMO_USERS = {"operator": "solar123", "engineer": "solar123"}
+
+# ---------------------------------------------------------------------------
+# Chat assistant (engine/assistant.py) — Google Gemini, free tier
+# ---------------------------------------------------------------------------
+# The Gemini key is a SECRET (anyone with it can use our free quota), so it is never written in code.
+# Get one free at aistudio.google.com ("Get API key"), then create a file called .env in the
+# solarsense folder (ignored by git) with this one line:
+#     GEMINI_API_KEY=your-key-here
+# No key = the chat says the assistant is offline; the rest of the dashboard works the same.
+def _read_env_file(name):
+    """Read one NAME=value line from the local .env file (no extra library needed)."""
+    env_file = PROJECT_ROOT / ".env"
+    if not env_file.exists():
+        return ""
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        key, _, value = line.partition("=")
+        if key.strip() == name:
+            return value.strip()
+    return ""
+
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or _read_env_file("GEMINI_API_KEY")
+GEMINI_MODEL = "gemini-2.5-flash"   # fast, generous free tier; change here if Google renames it
+CHAT_TIMEOUT_SECONDS = 25           # the AI can take a few seconds; never hang the page longer than this
+CHAT_MAX_PER_MINUTE = 20            # per browser session — protects the free quota during testing
