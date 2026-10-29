@@ -8,7 +8,7 @@ for the weather, flags likely faults with a plain-English reason, and estimates 
 money (₹) lost — shown on a web dashboard that operators can act on.
 
 **Live demo:** https://ojasguptaa.github.io/solarsense/ — a static copy of the dashboard (no install needed).
-
+ 
 ## Setup in 10 steps (Windows, PowerShell)
 
 1. **Install Python 3.12** from python.org (3.10–3.12 work; 3.13+ is too new for some libraries).
