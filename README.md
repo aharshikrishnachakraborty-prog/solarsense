@@ -38,7 +38,7 @@ money (₹) lost — shown on a web dashboard that operators can act on.
 
 | Page | What it shows |
 |---|---|
-| **Overview** | Day summary, KPI tiles, actual vs expected chart, alerts needing attention, **▶ Live replay** of the day |
+| **Overview** | Day summary, KPI tiles, actual vs expected chart, alerts needing attention, **▶ Live replay** of the day, **Plant 3D view** (one block per inverter, coloured by status; hover for numbers, click to open) |
 | **Plant** | All days: daily actual vs expected, inverter × day health map, worst inverters |
 | **Weather & Energy** | The sky read from sunlight (☀️ ⛅ ☁️ 🌫️), panel heat, the energy waterfall (natural vs fixable losses), calendar of all days |
 | **Inverters** | One inverter: actual vs expected vs neighbours, alert periods shaded, daily trend, its alerts |
@@ -82,7 +82,7 @@ cannot keep a key secret).
 ```
 engine/   the AI pipeline (load, clean, model, weather, detect, losses, waterfall, validate) — settings in engine/config.py
 api/      FastAPI app: JSON endpoints + serves the website
-web/      the dashboard (HTML, CSS, JavaScript, Chart.js)
+web/      the dashboard (HTML, CSS, JavaScript, Chart.js, Three.js for the 3D plant view)
 reports/  metrics.json (every number shown), data_quality.md, model_card.md, assumptions.md, figures/
 tests/    pytest checks
 data/     raw/ (Kaggle CSVs, not in git) and processed/ (pipeline outputs)
@@ -101,6 +101,7 @@ own browser, and the data is the version committed to the repository (re-run `py
 - **"Raw data not found"** → the 4 CSVs are not in `data/raw/` (step 6).
 - **"Engine offline" on the website** → the server is not running (step 9).
 - **Charts are empty** → no internet; Chart.js loads from a CDN.
+- **"3D view not available on this device"** → Three.js (CDN) could not load or the browser has no WebGL 2; the rest of the page still works.
 - **Port 8000 already in use** → `uvicorn api.main:app --reload --port 8001` and open http://localhost:8001.
 
 ## Data, assumptions and honesty

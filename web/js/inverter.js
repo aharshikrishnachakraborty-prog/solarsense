@@ -3,6 +3,7 @@
 const ALERT_SHADE = "rgba(239, 68, 68, 0.14)";
 let inverterId = new URLSearchParams(window.location.search).get("id");
 let lastInverterData = null;
+const sunlightCache = {};
 
 async function loadInverterPage(state) {
   try {
@@ -20,6 +21,11 @@ async function loadInverterPage(state) {
     clearError();
     lastInverterData = detail;
     renderInverter(detail);
+    // All-days readings for the power-vs-sunlight chart: fetched once per inverter, reused when the date changes.
+    if (!sunlightCache[inverterId]) {
+      sunlightCache[inverterId] = await fetchJSON(`/api/inverter/${encodeURIComponent(inverterId)}/sunlight`);
+    }
+    renderSunlightChart(sunlightCache[inverterId], detail.date);
   } catch (error) {
     showError(error.message);
   }
@@ -83,6 +89,57 @@ function renderDayChart(detail, alertsToday) {
   });
 }
 
+/** Power vs sunlight ("regression against irradiance"): the selected day in colour over all other days in grey. */
+function renderSunlightChart(sun, date) {
+  const pick = (today, alert) => sun.points.filter((p) => (p.d === date) === today && p.f === alert)
+    .map((p) => ({ x: p.s, y: p.a, e: p.e, d: p.d }));
+  const todayAlert = pick(true, true);
+  const r2 = sun.healthy_r2 === null ? "" : ` (R² ${fmt.number(sun.healthy_r2, 2)})`;
+  document.getElementById("sun-title").textContent = todayAlert.length
+    ? `${todayAlert.length} readings on ${fmt.date(date)} fell below the expected line during an alert`
+    : sun.readings_in_alerts
+      ? `Healthy readings follow the AI line${r2}; ${fmt.number(sun.readings_in_alerts)} readings fell below it during alerts`
+      : `All readings follow the AI line${r2}: no faults found on this inverter`;
+  document.getElementById("sun-sub").textContent = "Each dot is one 15-minute reading. The orange line is the power our "
+    + "AI model expects for that much sunlight"
+    + (sun.expected_at_full_sun_kw ? ` (about ${fmt.number(sun.expected_at_full_sun_kw)} kW in full sun)` : "")
+    + `. Coloured dots = ${fmt.date(date)}, grey = all other days. Dots far below the line are lost energy.`;
+
+  const muted = Charts.color("--muted");
+  const dots = (label, data, color, radius) => ({ label, data, type: "scatter", backgroundColor: color,
+    borderColor: color, pointRadius: radius, pointHoverRadius: radius + 2 });
+  Charts.draw("sun-chart", {
+    type: "scatter",
+    data: {
+      datasets: [
+        { label: "AI expected power", type: "line", data: sun.expected_line.map((p) => ({ x: p.sunlight, y: p.expected_kw })),
+          borderColor: Charts.color("--chart-expected"), backgroundColor: Charts.color("--chart-expected"),
+          borderWidth: 3, pointRadius: 0, tension: 0.3, order: 0 },
+        dots("Selected day: during an alert", todayAlert, Charts.color("--bad"), 5),
+        dots("Selected day: normal", pick(true, false), Charts.color("--chart-actual"), 4),
+        dots("Other days: during an alert", pick(false, true), "rgba(220, 38, 38, 0.28)", 2.5),
+        dots("Other days: normal", pick(false, false), `${muted}40`, 2),
+      ],
+    },
+    options: {
+      interaction: { mode: "nearest", intersect: true },
+      scales: { x: Charts.axis("Sunlight (irradiation, kW/m²)", { type: "linear", min: 0 }),
+                y: Charts.axis("AC power (kW)", { beginAtZero: true }) },
+      plugins: {
+        tooltip: { callbacks: {
+          label: (ctx) => {
+            const p = ctx.raw;
+            if (p.e === undefined) return `AI expects ${fmt.number(p.y)} kW at ${fmt.number(p.x, 2)} kW/m²`;
+            const gap = p.e > 0 ? Math.round((1 - p.y / p.e) * 100) : 0;
+            return `${fmt.date(p.d)}: ${fmt.number(p.y)} kW made, ${fmt.number(p.e)} kW expected`
+              + (gap > 0 ? ` (${gap}% below)` : "");
+          },
+        } },
+      },
+    },
+  });
+}
+
 function renderPrChart(detail) {
   const days = detail.daily_history;
   const trend = detail.pr_trend ? Object.fromEntries(detail.pr_trend.points.map((p) => [p.date, p.performance_ratio])) : {};
@@ -128,5 +185,10 @@ function renderAlertList(detail) {
     </a></li>`).join("");
 }
 
-window.addEventListener("themechange", () => { if (lastInverterData) renderInverter(lastInverterData); });
+window.addEventListener("themechange", () => {
+  if (!lastInverterData) return;
+  renderInverter(lastInverterData);
+  const sun = sunlightCache[lastInverterData.inverter];
+  if (sun) renderSunlightChart(sun, lastInverterData.date);
+});
 Layout.init("inverter", loadInverterPage);

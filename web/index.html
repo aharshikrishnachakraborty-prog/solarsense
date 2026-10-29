@@ -11,6 +11,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="css/style.css">
+  <!-- Plant 3D view: tells the browser where "three" lives (Three.js from the CDN, version pinned). -->
+  <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+  </script>
 </head>
 <body>
   <header id="topbar"></header>
@@ -51,21 +57,24 @@
       </div>
     </section>
 
-    <section class="grid grid-main">
-      <div class="card">
-        <h2 id="loss-chart-title">Energy lost by fault type</h2>
-        <p class="card-sub">Whole period (all days) for this plant. Data gaps are shown separately as "at risk" — not confirmed loss.</p>
-        <div class="chart-box small"><canvas id="loss-chart" aria-label="Loss by fault type chart"></canvas></div>
+    <!-- Plant 3D view: one block of panels per inverter, coloured by its status on the replay date -->
+    <section class="card plant3d-card" aria-label="Plant 3D view">
+      <div class="card-head">
+        <h2 id="plant3d-title">Plant 3D view</h2>
+        <div class="plant3d-buttons">
+          <button id="plant3d-reset" type="button" title="Go back to the starting angle">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 1 0 1.4-3.3M3.5 2.5v2.6h2.6"/></svg>Reset view</button>
+          <button id="plant3d-pause" type="button" title="Stop or start the slow rotation" aria-pressed="false">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path id="plant3d-pause-icon" d="M5.5 3.5v9M10.5 3.5v9"/></svg><span id="plant3d-pause-label">Pause</span></button>
+        </div>
       </div>
-      <div class="card">
-        <h2>How to read this page</h2>
-        <ul class="list muted">
-          <li><strong>Energy lost</strong> counts only detected faults (trips, underperformance…).</li>
-          <li><strong>At risk</strong> = energy we could not verify because readings were missing.</li>
-          <li>The <strong>coloured band</strong> above the chart is the sky, read from the sunlight: ☀️ clear, ⛅ partly cloudy, ☁️ cloudy, 🌫️ overcast.</li>
-          <li>Use <strong>Replay date</strong> (top right) to step through the days. It opens on the day with the highest energy loss.</li>
-        </ul>
+      <p class="card-sub">One block of panels per inverter, coloured by its status on the replay date. Hover a block to see its numbers; click it to open that inverter.</p>
+      <div id="plant3d-view" class="plant3d-view">
+        <p id="plant3d-message" class="plant3d-message">Loading 3D view…</p>
+        <div id="plant3d-hint" class="plant3d-hint" hidden>Drag to rotate · Scroll to zoom</div>
+        <div id="plant3d-tip" class="plant3d-tip" role="status" hidden></div>
       </div>
+      <div id="plant3d-legend" class="legend plant3d-legend" aria-label="Inverters by status"></div>
     </section>
 
     <p class="footer-note">All numbers are computed by the SolarSense pipeline from the Kaggle "Solar Power Generation Data" (two plants in India, May–June 2020).</p>

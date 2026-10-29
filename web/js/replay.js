@@ -48,6 +48,7 @@ const Replay = {
     Replay.active = false;
     Replay.setButtons(false);
     document.getElementById("toasts").innerHTML = "";
+    if (plant3d) plant3d.resetSun();
     if (restore && lastData) renderAll(lastData);
   },
 
@@ -76,6 +77,7 @@ const Replay = {
       `<span class="live-dot"></span>Live replay · ${fmt.time(t.timestamp)}${weatherNow ? ` · ${weatherNow}` : ""} — plant ` +
       `has made ${fmt.kwh(t.actual_kwh)} so far; ${fmt.kwh(t.fault_loss_kwh)} lost to faults so far.`;
     Replay.showWeather(t);
+    if (plant3d) plant3d.setSun(t.timestamp, t.irradiation);   // the 3D sun moves with the replay clock
     const chart = Charts.instances["day-chart"];
     const upTo = (key) => ticks.map((p, j) => (j <= i ? p[key] : null));
     chart.data.datasets[0].data = upTo("actual_kw");

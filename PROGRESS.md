@@ -351,3 +351,30 @@ Tick a box (`[x]`) when the phase's "You check" list in PROMPTS.md passes.
 - Links in replies: each answer ends with "Open the <Page> page" (linked, keeps plant + date); inverter IDs the server
   confirms are real (`inverters` in the /api/chat answer) link to that inverter's page. Chat stays open across pages.
 - pytest: 105 passed (new tests/test_chat.py).
+
+## Power vs sunlight chart, Inverters page (2026-10-29)
+- `api/routes/sunlight.py`: `GET /api/inverter/{id}/sunlight` returns every daylight reading (sunlight, actual kW, the AI's
+  expected kW, inside-an-alert flag), the expected line (median per 0.05 kW/m² step) and R² of healthy readings.
+- `web/inverter.html` + `js/inverter.js`: scatter chart; dots on the orange line are healthy, dots far below are lost energy.
+- pytest: 107 passed (new tests/test_sunlight.py).
+
+## Plant 3D view, Overview page (2026-10-29)
+- Replaces the "Energy lost by fault type" chart and the "How to read this page" card.
+- `api/routes/inverter_status.py`: `GET /api/inverters/status?plant=&date=` — every inverter's status that day, read
+  only from that day's alerts (critical = trip or Critical alert, warning = other alert, offline = only data-gap
+  alerts, normal = none), plus actual/expected kWh, energy and ₹ lost, open alerts. Saved for the Pages copy too.
+- Three.js 0.160.0 from the jsDelivr CDN through an import map in `web/index.html` (no npm, no build step).
+- `web/js/plant3d.js` (scene, lights, OrbitControls, slow auto-rotate, hover/click, loop), `plant3d_camera.js` (fit the
+  whole plant, zoom limits, Reset glide), `plant3d_models.js` (base, one panel block per inverter, cabinets),
+  `plant3d_shapes.js` (canvas textures, box/instance helpers). Four files so each stays under ~250 lines.
+- Turntable: one turn per 60 s (`AUTO_ROTATE_SPEED = 1.0`); stops on drag/hover, resumes 4 s after the last touch and
+  eases up over 1 s; tilt 20°–75°; zoom limited; no panning; Reset view + Pause/Play; prefers-reduced-motion = no spin.
+- Hover = tooltip with the inverter's numbers; click (phones: tap twice) opens `inverter.html?id=&date=&plant=`.
+  Red pins pulse over critical blocks. Legend under the view shows the counts (works even without 3D).
+- Live replay moves the 3D sun with the clock and dims it with the measured sunlight (IRRADIATION).
+- Safe: no WebGL / CDN blocked → "3D view not available on this device", rest of the page works. Drawing stops when
+  the card is off-screen or the tab is hidden. Pixel ratio capped at 2, shadows only on wider screens.
+- Checked in headless Chrome: 6.00°/s rotation (one turn per minute), resume after 4 s, tilt and zoom limits, Reset,
+  Pause, red blocks = trips on the Alerts page (Plant 1, 7 Jun: 6; Plant 2, 27 May: 10 red + 4 grey), click opens the
+  inverter page, dark mode, phone (300 px, page still scrolls), CDN blocked fallback, replay — no console errors.
+- pytest: 110 passed (new tests/test_inverter_status.py).

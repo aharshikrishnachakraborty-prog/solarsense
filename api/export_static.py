@@ -80,9 +80,12 @@ def export(out):
                          "breakdown"]:
                 ex.save(name, {"plant": plant})
             inverters = client.get("/api/plant/heatmap", params={"plant": plant}).json()["inverters"]
+            for inverter in inverters:
+                ex.save(f"inverter/{inverter}/sunlight")                    # power vs sunlight (all days)
             for date in info["dates"]:
                 for name in ["overview", "plant/timeseries", "replay", "weather/day"]:
                     ex.save(name, {"plant": plant, "date": date})
+                ex.save("inverters/status", {"plant": plant, "date": date})   # Overview 3D plant view
                 ex.save("alerts", {"plant": plant, "date": date, "status": "Active", "sort": "severity",
                                    "limit": 5, "include_notices": "false"})   # Overview "Needs attention"
                 for inverter in inverters:

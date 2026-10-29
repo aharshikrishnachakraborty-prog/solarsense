@@ -1,34 +1,36 @@
-// Overview page: takeaway, KPI tiles, actual-vs-expected chart, alerts needing attention, loss by fault type.
+// Overview page: takeaway, KPI tiles, actual-vs-expected chart, alerts needing attention, plant 3D view.
 
 let lastData = null;   // kept so charts can be redrawn when the theme changes
+let plant3d = null;    // the 3D view (js/plant3d.js) once it has loaded; stays null if it cannot run
 
 async function loadOverview(state) {
   const { plant, date } = state;
   if (typeof Replay !== "undefined") Replay.stop(false);   // a new plant/date ends any running replay
   document.getElementById("all-alerts-link").href = `alerts.html?plant=${plant}`;
   try {
-    const [overview, series, attention, losses, weather] = await Promise.all([
+    const [overview, series, attention, weather, status] = await Promise.all([
       fetchJSON("/api/overview", { plant, date }),
       fetchJSON("/api/plant/timeseries", { plant, date }),
       fetchJSON("/api/alerts", { plant, date, status: "Active", sort: "severity", limit: 5, include_notices: false }),
-      fetchJSON("/api/losses", { plant }),
-      fetchJSON("/api/weather/day", { plant, date }).catch(() => null),   // optional: page works without it
+      fetchJSON("/api/weather/day", { plant, date }).catch(() => null),        // optional: page works without it
+      fetchJSON("/api/inverters/status", { plant, date }).catch(() => null),   // optional: only the 3D view needs it
     ]);
     clearError();
-    lastData = { overview, series, attention, losses, weather };
+    lastData = { overview, series, attention, weather, status };
     renderAll(lastData);
+    plant3dReady.then((view) => view && view.show(status, { plant, date }));
   } catch (error) {
     showError(error.message);
   }
 }
 
-function renderAll({ overview, series, attention, losses, weather }) {
+function renderAll({ overview, series, attention, weather, status }) {
   document.getElementById("takeaway").textContent = overview.takeaway;
   renderKpis(overview);
   renderWeatherMini(weather);
   renderDayChart(overview, series, weather);
   renderAttention(attention);
-  renderLossChart(losses);
+  renderPlantLegend(status);
 }
 
 function kpiTile(label, value, compare, status = "") {
@@ -150,31 +152,53 @@ function renderAttention(attention) {
   }).join("");
 }
 
-function renderLossChart(losses) {
-  const rows = losses.by_fault_type.filter((r) => r.fault_loss_kwh > 0 || r.at_risk_kwh > 0);
-  const totalLoss = rows.reduce((sum, r) => sum + r.fault_loss_kwh, 0);
-  const biggest = rows.slice().sort((a, b) => b.fault_loss_kwh - a.fault_loss_kwh)[0];
-  document.getElementById("loss-chart-title").textContent = biggest && totalLoss > 0
-    ? `${fmt.pct(biggest.fault_loss_kwh / totalLoss)} of energy lost came from: ${fmt.fault(biggest.fault_type).toLowerCase()}`
-    : "Energy lost by fault type";
-  Charts.draw("loss-chart", {
-    type: "bar",
-    data: {
-      labels: rows.map((r) => fmt.fault(r.fault_type)),
-      datasets: [
-        { label: "Confirmed loss (kWh)", data: rows.map((r) => r.fault_loss_kwh), backgroundColor: Charts.color("--bad") },
-        { label: "At risk — data gaps (kWh)", data: rows.map((r) => r.at_risk_kwh), backgroundColor: Charts.color("--chart-sun") },
-      ],
-    },
-    options: {
-      indexAxis: "y",
-      scales: { x: Charts.axis("Energy (kWh)", { stacked: true, beginAtZero: true }), y: { stacked: true } },
-      plugins: {
-        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label.replace(" (kWh)", "")}: ${fmt.kwh(ctx.parsed.x)}` } },
-      },
-    },
-  });
+// ---- Plant 3D view (the 3D drawing itself lives in js/plant3d.js) ----
+
+const PLANT_STATUS = [
+  { key: "normal", label: "Normal", css: "l-ok" }, { key: "warning", label: "Warning", css: "l-warn" },
+  { key: "critical", label: "Critical", css: "l-bad" }, { key: "offline", label: "Offline / data gap", css: "l-off" },
+];
+
+/** Legend under the 3D view: how many inverters are in each status (works even without 3D). */
+function renderPlantLegend(status) {
+  const legend = document.getElementById("plant3d-legend");
+  legend.innerHTML = status
+    ? PLANT_STATUS.map((s) => `<span class="${s.css}">${s.label}: <strong>${status.counts[s.key] || 0}</strong></span>`).join("")
+    : "";
 }
+
+/** Tooltip for one inverter in the 3D view (numbers straight from /api/inverters/status). */
+function plant3dTooltip(row) {
+  const label = (PLANT_STATUS.find((s) => s.key === row.status) || { label: row.status }).label;
+  const risk = row.at_risk_kwh > 0 ? ` · ${fmt.kwh(row.at_risk_kwh)} at risk (data gap)` : "";
+  return `<div class="p3-head"><strong>Inverter ${escapeHTML(row.inverter)}</strong>
+      <span class="p3-status p3-${row.status}">${label}</span></div>
+    <div>Actual ${fmt.kwh(row.actual_kwh)} · expected ${fmt.kwh(row.expected_kwh)}</div>
+    <div>Energy lost ${fmt.kwh(row.loss_kwh)} · ${fmt.inr(row.loss_inr)}${risk}</div>
+    <div>Open alerts: ${row.open_alerts ?? 0}${row.main_fault ? ` · ${escapeHTML(fmt.fault(row.main_fault))}` : ""}</div>
+    <div class="p3-open">${matchMedia("(pointer: coarse)").matches ? "Tap again" : "Click"} to open this inverter</div>`;
+}
+
+/** Show a message over the 3D area, e.g. while loading or when 3D cannot run on this device. */
+function plant3dMessage(text) {
+  const box = document.getElementById("plant3d-message");
+  box.textContent = text;
+  box.hidden = !text;
+}
+
+// Load Three.js + our 3D scene in the background. If the CDN is blocked, the browser is too old,
+// or there is no WebGL, we show a friendly message and the rest of the page keeps working.
+const plant3dReady = import("./plant3d.js")
+  .then((module) => {
+    module.start(document.getElementById("plant3d-view"), { describe: plant3dTooltip });
+    plant3d = module;
+    return module;
+  })
+  .catch(() => {
+    plant3dMessage("3D view not available on this device");
+    document.querySelector(".plant3d-buttons").hidden = true;
+    return null;
+  });
 
 window.addEventListener("themechange", () => {
   if (typeof Replay !== "undefined") Replay.stop(false);
