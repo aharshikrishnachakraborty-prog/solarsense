@@ -1,6 +1,6 @@
 # SolarSense — AI Solar Plant Health Monitor 
 
-Meridian hackathon, problem **DEV-P01** (Application Development track).
+Meridian hackathon, problem **DEV-P01** (Application Development track)
 
 Solar operators often find out about broken or weak inverters only after the losses pile up.
 SolarSense compares what every inverter **actually** produced with what it **should** have produced
